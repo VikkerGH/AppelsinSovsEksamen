@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="AppelsinSovsEksamen/AppelsinSovsEksamen.csproj" />
+  <Project Path="Domain/Domain.csproj" Id="a0ee53ad-7c4e-469b-9c1a-dd2b5718a194" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="7549140b-1c05-48cf-945e-b7e87d9af528" />
 </Solution>
