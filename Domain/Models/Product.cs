@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Domain.Models
 {
-    public class Game
+    public class Product
     {
-        public Game() { }
+        public Product() { }
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public Kategori Kategori { get; private set; }
+        public double Price { get; set; } 
+        public Kategori Kategori { get; set; }
     }
 }

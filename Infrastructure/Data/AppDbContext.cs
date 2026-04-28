@@ -8,6 +8,8 @@ namespace Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options){}
-        public DbSet<Game> Games { get; set; }
+        public DbSet<Game> Games => Set<Game>();
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Product> Products => Set<Product>();
     }
 }
