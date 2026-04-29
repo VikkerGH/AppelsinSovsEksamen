@@ -11,5 +11,6 @@ namespace Infrastructure.Data
         public DbSet<Game> Games => Set<Game>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Product> Products => Set<Product>();
+        public DbSet<HighScore> HighScores => Set<HighScore>();
     }
 }

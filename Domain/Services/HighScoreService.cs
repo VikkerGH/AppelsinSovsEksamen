@@ -6,19 +6,19 @@ using System.Text;
 
 namespace Domain.Services
 {
-    public class GameService
+    public class HighScoreService
     {
-        private readonly IRepository<Game> _persist;  
-        public GameService(IRepository<Game> persist)
+        private readonly IRepository<HighScore> _persist;
+        public HighScoreService (IRepository<HighScore> persist)
         {
             _persist = persist;
         }
-        public IEnumerable<Game> GetAll() => _persist.GetAll();
-        public Game GetById(Guid id) => _persist.GetById(id)
-            ?? throw new ArgumentException("Game not found", nameof(id));
-        public Game Create(string name, decimal price)
+        public IEnumerable<HighScore> GetAll() => _persist.GetAll();
+        public HighScore GetById(Guid id) => _persist.GetById(id)
+            ?? throw new ArgumentException("High score not found", nameof(id));
+        public HighScore Create(string name, decimal price)
         {
-            var game = new Game();
+            var game = new HighScore();
             _persist.Add(game);
             return game;
         }
@@ -34,4 +34,3 @@ namespace Domain.Services
         }
     }
 }
-

@@ -7,7 +7,6 @@ namespace Domain.Models
     public class Kategori
     {
         public Kategori() { }
-        public Guid Id { get; private set; }
-        public string Name { get; private set; } = string.Empty;
+        public string Name { get; private set; } 
     }
 }
