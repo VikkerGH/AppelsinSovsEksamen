@@ -1,0 +1,1935 @@
+@page
+@model AppelsinSovsEksamen.Pages.Game.AppelsinHopModel
+@{
+    ViewData["Title"] = "Appelsin Hop";
+}
+
+<section class="appelsin-hop-page">
+    <div class="game-header">
+        <h1>🍊 Appelsin Hop</h1>
+        <p class="game-instructions">Tryk <kbd>MELLEMRUM</kbd> eller <kbd>KLIK</kbd> for at hoppe</p>
+    </div>
+
+    <div class="game-stats">
+        <div class="stat">
+            <span class="stat-label">Score</span>
+            <span class="stat-value" id="current-score">0</span>
+        </div>
+        <div class="stat stat-speed">
+            <span class="stat-label">🍊 km/t</span>
+            <div class="speed-display">
+                <span class="stat-value" id="current-speed">35</span>
+                <div class="speed-bar-container">
+                    <div class="speed-bar" id="speed-bar"></div>
+                </div>
+            </div>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Bedste</span>
+            <span class="stat-value" id="best-score">@Model.TopScore</span>
+        </div>
+        <div class="stat" id="powerup-hud" style="display:none;">
+            <span class="stat-label">⚡ 2x Point</span>
+            <span class="stat-value" id="powerup-timer" style="color:#ffe066;">8s</span>
+        </div>
+    </div>
+
+    <div class="game-canvas-container">
+        <canvas id="game-canvas" width="1600" height="650"></canvas>
+        <div class="game-overlay" id="game-overlay">
+            <div class="overlay-content">
+                <h2 id="overlay-title">🍊 Appelsin Hop</h2>
+                <p id="overlay-message">
+                    <strong>Sådan spiller du:</strong><br>
+                    • Tryk <kbd>MELLEMRUM</kbd> eller klik for at hoppe<br>
+                    • Flyv igennem hullerne i rørene<br>
+                    • Hvert rør du passerer giver et point<br>
+                    • Rammer du et rør er det slut!
+                </p>
+                <button class="btn-start" id="btn-start">START</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-controls">
+        <a asp-page="/Index" class="btn-back">← Tilbage til forsiden</a>
+    </div>
+
+    <div class="game-highscores">
+        <h3 class="highscores-title">🏆 Top 5 Highscores</h3>
+        @if (Model.TopHighscores.Any())
+        {
+            <ol class="highscores-list">
+                @for (int i = 0; i < Model.TopHighscores.Count; i++)
+                {
+                    var highscore = Model.TopHighscores[i];
+                    var rank = i + 1;
+                    var rankClass = rank == 1 ? "rank-gold" : rank == 2 ? "rank-silver" : rank == 3 ? "rank-bronze" : "";
+                    var rankIcon = rank == 1 ? "🥇" : rank == 2 ? "🥈" : rank == 3 ? "🥉" : rank.ToString();
+                    <li class="highscore-item @rankClass">
+                        <div class="highscore-rank">@Html.Raw(rankIcon)</div>
+                        <div class="highscore-info">
+                            <span class="highscore-player">@highscore.PlayerName</span>
+                            <span class="highscore-date">@highscore.Datetime.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="highscore-score">@highscore.Score</div>
+                    </li>
+                }
+            </ol>
+        }
+        else
+        {
+            <p class="no-highscores">Ingen highscores endnu. Vær den første! 🎮</p>
+        }
+    </div>
+</section>
+
+@* Game Over Popup *@
+<div class="highscore-popup-overlay" id="highscore-popup" style="display: none;">
+    <div class="highscore-popup">
+        <h2 id="popup-title">🏆 Godt klaret!</h2>
+        <p class="final-score">Du scorede: <strong id="final-score-value">0</strong> point</p>
+        <form method="post" id="highscore-form">
+            <div id="guest-name-area">
+                <label for="player-name">Dit navn til highscore:</label>
+                <input type="text" name="PlayerName" id="player-name" maxlength="20" placeholder="Indtast dit navn..." required>
+                <input type="hidden" name="Score" id="score-input" value="0">
+            </div>
+            <button type="submit" class="btn-submit">💾 Gem Score</button>
+        </form>
+        <button class="btn-start" id="btn-close-popup" style="margin-top:1rem;">Prøv igen</button>
+    </div>
+</div>
+
+<style>
+    .appelsin-hop-page {
+        max-width: 1450px;
+        margin: 0 auto;
+        padding: 0 20px 60px;
+        text-align: center;
+    }
+
+    .game-header {
+        background: linear-gradient(135deg, rgba(31, 31, 31, 0.96) 0%, rgba(14, 14, 14, 0.98) 100%);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        padding: 1.5rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .game-header h1 {
+        font-size: 2.8rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ff8c00 0%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 2px 8px rgba(255, 140, 0, 0.4));
+        font-weight: 900;
+    }
+
+    .game-instructions {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0;
+        font-size: 1rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .game-instructions kbd {
+        background: rgba(255, 140, 0, 0.15);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-family: 'Courier New', monospace;
+        color: #ffb347;
+        font-weight: 600;
+    }
+
+    .game-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .stat {
+        background: linear-gradient(135deg, rgba(31, 31, 31, 0.96) 0%, rgba(14, 14, 14, 0.98) 100%);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        border-radius: 20px;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 179, 71, 0.6);
+        box-shadow: 0 20px 45px rgba(255, 140, 0, 0.2);
+    }
+
+    .stat-speed {
+        min-width: 120px;
+    }
+
+    .speed-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .speed-bar-container {
+        width: 100px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .speed-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4ade80, #facc15, #f87171);
+        border-radius: 3px;
+        transition: width 0.1s ease-out;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    #powerup-hud {
+        animation: powerup-pulse 0.6s ease-in-out infinite alternate;
+    }
+
+    @@keyframes powerup-pulse {
+        from { opacity: 1; }
+        to   { opacity: 0.55; }
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #ffb347;
+        text-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+        transition: all 0.3s ease;
+        line-height: 1;
+    }
+
+    .game-canvas-container {
+        position: relative;
+        display: block;
+        max-width: 1400px;
+        margin: 0 auto;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 60px rgba(255, 140, 0, 0.25);
+        border: 2px solid rgba(255, 179, 71, 0.4);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .game-canvas-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(255, 140, 0, 0.35);
+    }
+
+    #game-canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: linear-gradient(to bottom, #4A90E2 0%, #87CEEB 40%, #E8C5A5 85%, #D4A85A 100%);
+    }
+
+    .game-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.92) 0%, rgba(26, 26, 26, 0.95) 100%);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
+        z-index: 5;
+    }
+
+    .game-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .overlay-content {
+        text-align: center;
+        color: white;
+        max-width: 600px;
+        padding: 40px;
+        background: linear-gradient(135deg, rgba(31, 31, 31, 0.8) 0%, rgba(14, 14, 14, 0.9) 100%);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        border-radius: 25px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .overlay-content h2 {
+        font-size: 2.8rem;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #ff8c00 0%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 900;
+    }
+
+    .overlay-content p {
+        font-size: 1.15rem;
+        margin-bottom: 30px;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.8;
+    }
+
+    .btn-start {
+        background: linear-gradient(135deg, var(--color-orange, #ff8c00) 0%, var(--color-orange-dark, #e67e22) 100%);
+        color: white;
+        border: none;
+        padding: 18px 50px;
+        font-size: 1.4rem;
+        font-weight: 900;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-start::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-start:hover::before {
+        left: 100%;
+    }
+
+    .btn-start:hover {
+        background: linear-gradient(135deg, #ffb347 0%, #ff8c00 100%);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(255, 140, 0, 0.6);
+    }
+
+    .btn-start:active {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+    }
+
+    .game-controls {
+        text-align: center;
+        margin: 1.5rem 0 40px;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 32px;
+        background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        font-weight: 700;
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        font-size: 1.05rem;
+    }
+
+    .btn-back:hover {
+        background: linear-gradient(135deg, #66bb6a 0%, #4CAF50 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-back:active {
+        transform: translateY(0);
+    }
+
+    /* Top 5 Highscores Section */
+    .game-highscores {
+        max-width: 900px;
+        margin: 0 auto 60px;
+        background: linear-gradient(135deg, rgba(31, 31, 31, 0.96) 0%, rgba(14, 14, 14, 0.98) 100%);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .game-highscores:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 179, 71, 0.5);
+    }
+
+    .highscores-title {
+        font-size: 1.5rem;
+        margin: 0 0 1.5rem 0;
+        background: linear-gradient(135deg, #ff8c00 0%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+        font-weight: 900;
+    }
+
+    .highscores-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .highscore-item {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid rgba(255, 179, 71, 0.2);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.08) 0%, rgba(255, 179, 71, 0.05) 100%);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .highscore-item:hover {
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.15) 0%, rgba(255, 179, 71, 0.10) 100%);
+        transform: translateY(-3px);
+        border-color: rgba(255, 179, 71, 0.4);
+        box-shadow: 0 8px 20px rgba(255, 140, 0, 0.2);
+    }
+
+    .highscore-item:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Gold / #1 */
+    .highscore-item.rank-gold {
+        background: linear-gradient(135deg, rgba(201, 146, 42, 0.16) 0%, rgba(180, 120, 30, 0.08) 100%);
+        border-color: rgba(201, 146, 42, 0.45);
+        box-shadow: 0 0 18px rgba(201, 146, 42, 0.20), 0 4px 12px rgba(0,0,0,0.2);
+        animation: goldPulse 3.5s ease-in-out infinite;
+    }
+
+    @@keyframes goldPulse {
+        0%, 100% { box-shadow: 0 0 14px rgba(201, 146, 42, 0.20), 0 4px 12px rgba(0,0,0,0.2); }
+        50%       { box-shadow: 0 0 28px rgba(201, 146, 42, 0.35), 0 4px 16px rgba(0,0,0,0.22); }
+    }
+
+    .highscore-item.rank-gold .highscore-player {
+        color: #c9922a;
+        text-shadow: 0 0 8px rgba(201, 146, 42, 0.40);
+    }
+
+    .highscore-item.rank-gold .highscore-score {
+        color: #c9922a;
+        text-shadow: 0 0 12px rgba(201, 146, 42, 0.50);
+    }
+
+    /* Silver / #2 */
+    .highscore-item.rank-silver {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.14) 0%, rgba(160, 160, 160, 0.07) 100%);
+        border-color: rgba(192, 192, 192, 0.4);
+        box-shadow: 0 0 16px rgba(192, 192, 192, 0.15), 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .highscore-item.rank-silver .highscore-player { color: #c0c0c0; }
+    .highscore-item.rank-silver .highscore-score  { color: #c0c0c0; text-shadow: 0 0 10px rgba(192,192,192,0.4); }
+
+    /* Bronze / #3 */
+    .highscore-item.rank-bronze {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.14) 0%, rgba(180, 100, 30, 0.07) 100%);
+        border-color: rgba(205, 127, 50, 0.4);
+        box-shadow: 0 0 16px rgba(205, 127, 50, 0.15), 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .highscore-item.rank-bronze .highscore-player { color: #cd7f32; }
+    .highscore-item.rank-bronze .highscore-score  { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.4); }
+
+    .highscore-rank {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 179, 71, 0.15) 100%);
+        border: 2px solid rgba(255, 179, 71, 0.3);
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: #ffb347;
+        text-shadow: 0 0 12px rgba(255, 149, 0, 0.4);
+        flex-shrink: 0;
+    }
+
+    .rank-gold .highscore-rank, .rank-silver .highscore-rank, .rank-bronze .highscore-rank {
+        background: none;
+        border: none;
+        font-size: 2rem;
+    }
+
+    .highscore-info {
+        flex: 1;
+    }
+
+    .highscore-player {
+        display: block;
+        font-weight: 800;
+        color: #ffffff;
+        font-size: 1.15rem;
+        margin-bottom: 4px;
+    }
+
+    .highscore-date {
+        display: block;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .highscore-score {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #ffb347;
+        text-shadow: 0 0 15px rgba(255, 149, 0, 0.4);
+        letter-spacing: 0.5px;
+    }
+
+    .no-highscores {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 40px 20px;
+        font-size: 1.1rem;
+    }
+
+    /* Highscore Popup */
+    .highscore-popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .highscore-popup {
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        padding: 2.5rem;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 140, 0, 0.2);
+        border: 1px solid rgba(255, 179, 71, 0.3);
+        color: #fff;
+    }
+
+    .highscore-popup h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .final-score {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        color: #ccc;
+    }
+
+    .final-score strong {
+        color: #ff8c00;
+        font-size: 1.8rem;
+    }
+
+    #highscore-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #highscore-form label {
+        text-align: left;
+        font-weight: 600;
+        color: #ccc;
+    }
+
+    #player-name {
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        border: 2px solid rgba(255, 179, 71, 0.3);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        transition: border-color 0.2s;
+    }
+
+    #player-name:focus {
+        outline: none;
+        border-color: #ff8c00;
+    }
+
+    #player-name::placeholder {
+        color: #666;
+    }
+
+    .logged-in-info {
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));
+        border: 2px solid rgba(255, 179, 71, 0.4);
+        padding: 0.9rem 1.2rem;
+        border-radius: 10px;
+        color: rgba(255, 255, 255, 0.85);
+        text-align: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 140, 0, 0.1);
+    }
+
+    .logged-in-info strong {
+        color: #ffb347;
+        font-weight: 700;
+        text-shadow: 0 1px 3px rgba(255, 140, 0, 0.3);
+    }
+
+    .popup-save-status {
+        min-height: 1.4em;
+        color: #a3e6a3;
+        font-size: 0.95rem;
+        margin: 0.2rem 0 0.5rem;
+        text-align: center;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #ff8c00, #e67e22);
+        color: #fff;
+        border: none;
+        padding: 0.8rem;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+    }
+
+    .btn-skip {
+        background: none;
+        border: none;
+        color: #666;
+        margin-top: 1rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .btn-skip:hover {
+        color: #999;
+    }
+
+    @@keyframes statPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4) rotate(5deg); text-shadow: 0 0 15px currentColor; }
+        100% { transform: scale(1); }
+    }
+
+    .stat-pop {
+        display: inline-block;
+        animation: statPop 0.3s ease-out;
+    }
+
+    @@keyframes deathShake {
+        0%, 100% { transform: translateX(0); filter: brightness(1); }
+        20% { transform: translateX(-15px) rotate(-2deg); filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(3); }
+        40% { transform: translateX(15px) rotate(2deg); }
+        60% { transform: translateX(-15px) rotate(-2deg); }
+        80% { transform: translateX(15px) rotate(2deg); filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(3); }
+    }
+
+    .death-shake {
+        animation: deathShake 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    @@media (max-width: 1450px) {
+        #game-canvas {
+            width: 100%;
+            height: auto;
+        }
+    }
+</style>
+
+@section Scripts {
+<script>
+(function() {
+    // ==================== MOBIL DETEKTION ====================
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // Bloker mobilbrugere
+    if (isMobile) {
+        document.querySelector('.appelsin-hop-page').innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <h1>🍊 Appelsin Hop</h1>
+                <p style="font-size: 1.2rem; margin: 2rem 0;">
+                    Dette spil er kun tilgængeligt på PC.
+                </p>
+                <p style="color: #666;">
+                    Besøg venligst denne side fra en computer for at spille.
+                </p>
+                <a href="/" style="display: inline-block; margin-top: 2rem; color: #ff6b35;">← Tilbage til forsiden</a>
+            </div>
+        `;
+        return;
+    }
+
+    // ==================== SPIL KONFIGURATION ====================
+    // Alle værdier er nu baseret på "per sekund" i stedet for "per frame"
+    const TARGET_FPS = 60;
+    const CONFIG = {
+        // Fysik
+        GRAVITY: 1800,              // pixels per sekund² - hurtigere fald!
+        JUMP_FORCE: -720,           // pixels per sekund - matcher gravity
+
+        // Hastighed - HARDCORE MODE! 💀🔥
+        OBSTACLE_SPEED_START: 280,  // pixels per sekund (~35 km/t)
+        OBSTACLE_SPEED_INCREMENT: 0.35, // acceleration (langsommere stigning)
+        OBSTACLE_SPEED_MAX: 2200,   // pixels per sekund (~270 km/t) - højere topfart
+
+        // Powerups
+        POWERUP_SIZE: 36,
+        POWERUP_SPAWN_CHANCE: 0.18, // sandsynlighed for spawn pr. kaktus
+        DOUBLE_POINTS_DURATION: 8,  // sekunder
+
+        // Spawn timing
+        OBSTACLE_SPAWN_MIN: 1.4,    // sekunder - lavere startfrekvens (mere luft i starten)
+        OBSTACLE_SPAWN_MAX: 2.8,    // sekunder - god buffer tidligt
+        SPAWN_DECREASE_RATE: 0.006, // hurtigere tilpasning til fart
+        SPAWN_MIN_LIMIT: 0.30,      // minimum sekunder ved topfart
+        MIN_PIXEL_GAP: 320,         // pixels gap ved lav fart (smallere start), men speed-gap dominerer
+
+        // Dimensioner - opdateret til større canvas (1600x650)
+        GROUND_Y: 555,              // 85% af canvas højde (650)
+        PLAYER_SIZE: 50,
+        OBSTACLE_WIDTH: 32,         // Bredere kaktusser til større bane
+        OBSTACLE_HEIGHT_MIN: 45,    // højere minimum
+        OBSTACLE_HEIGHT_MAX: 80     // højere maximum for mere variation
+    };
+
+    // ==================== SPIL STATE ====================
+    const canvas = document.getElementById('game-canvas');
+    if (!canvas) {
+        console.error('Canvas element ikke fundet!');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('game-overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayMessage = document.getElementById('overlay-message');
+    const btnStart = document.getElementById('btn-start');
+    const currentScoreEl = document.getElementById('current-score');
+    const currentSpeedEl = document.getElementById('current-speed');
+    const speedBarEl = document.getElementById('speed-bar');
+    const bestScoreEl = document.getElementById('best-score');
+    const popup = document.getElementById('highscore-popup');
+    const finalScoreEl = document.getElementById('final-score-value');
+    const btnClosePopup = document.getElementById('btn-close-popup');
+    const powerupHudEl = document.getElementById('powerup-hud');
+    const powerupTimerEl = document.getElementById('powerup-timer');
+
+    let gameState = 'idle';
+    let score = 0;
+    let bestScore = parseInt(bestScoreEl.textContent) || 0;
+    let obstacleSpeed = CONFIG.OBSTACLE_SPEED_START;
+    let spawnTimer = 0;
+    let nextSpawn = 2;      // sekunder til næste spawn
+    let animFrame = 0;
+    let lastTime = 0;       // til delta time beregning
+    let hasTrackedAttempt = false;
+
+    // ==================== VISUELLE STATE ====================
+    let sunRayAngle = 0;
+    let speedLineOffset = 0;
+    let floatingTexts = [];
+    let playerTrail = [];
+
+    const player = {
+        x: 100,
+        y: CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE,
+        width: CONFIG.PLAYER_SIZE,
+        height: CONFIG.PLAYER_SIZE,
+        velocityY: 0,
+        isJumping: false,
+        canDoubleJump: false,
+        scaleX: 1,
+        scaleY: 1
+    };
+
+    let obstacles = [];
+    let particles = [];
+    let powerups = [];
+    let doublePointsActive = false;
+    let doublePointsTimer = 0;
+
+    // ==================== SPIL FUNKTIONER ====================
+
+    function createDustParticles() {
+        for(let i=0; i<15; i++) {
+            particles.push({
+                x: player.x + player.width/2 + (Math.random() * 30 - 15),
+                y: CONFIG.GROUND_Y,
+                vx: (Math.random() - 0.5) * 200,
+                vy: -Math.random() * 100 - 30,
+                life: 1.0,
+                decay: 1.0 + Math.random(),
+                radius: 3 + Math.random() * 5,
+                color: `hsla(${30 + Math.random()*20}, 70%, 60%, 0.8)` // Støvfarver
+            });
+        }
+    }
+
+    function resetGame() {
+        score = 0;
+        obstacleSpeed = CONFIG.OBSTACLE_SPEED_START;
+        obstacles = [];
+        particles = [];
+        spawnTimer = 0;
+        nextSpawn = 2;  // sekunder
+        player.y = CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE;
+        player.velocityY = 0;
+        player.isJumping = false;
+        player.canDoubleJump = false;
+        powerups = [];
+        doublePointsActive = false;
+        doublePointsTimer = 0;
+        powerupHudEl.style.display = 'none';
+        currentScoreEl.textContent = '0';
+        currentSpeedEl.textContent = '35';
+        speedBarEl.style.width = '0%';
+        lastTime = 0;
+        floatingTexts = [];
+        playerTrail = [];
+    }
+
+    function jump() {
+        if (gameState !== 'running') return;
+
+        if (!player.isJumping) {
+            // Normal hop
+            player.velocityY = CONFIG.JUMP_FORCE; 
+            player.isJumping = true;
+            player.canDoubleJump = true;
+            createDustParticles();
+
+            // Squash/stretch effekt!
+            player.scaleY = 0.7;
+            player.scaleX = 1.3;
+        } else if (player.canDoubleJump) {
+            // Dobbelt hop
+            player.velocityY = Math.max(CONFIG.JUMP_FORCE * 0.85, -900); // Lidt lavere dobbelt hop, men cap velocity
+            player.canDoubleJump = false;
+            createDustParticles(); // Mere støv!
+
+            // Få appelsinen til at spinde vildt i luften ved dobbelthop
+            animFrame += 15;
+
+            // Squash stretch igen
+            player.scaleY = 0.8;
+            player.scaleX = 1.2;
+        }
+    }
+
+    function spawnObstacle() {
+        const height = CONFIG.OBSTACLE_HEIGHT_MIN + 
+                       Math.random() * (CONFIG.OBSTACLE_HEIGHT_MAX - CONFIG.OBSTACLE_HEIGHT_MIN);
+        // Generer unik seed baseret på tid og tilfældighed for konsistent visuel
+        const seed = Math.floor(Math.random() * 10000);
+        obstacles.push({
+            x: canvas.width,
+            y: CONFIG.GROUND_Y - height,
+            width: CONFIG.OBSTACLE_WIDTH,
+            height: height,
+            scored: false,
+            seed: seed  // Gem seed for konsistent rendering
+        });
+    }
+
+    function spawnPowerup() {
+        const size = CONFIG.POWERUP_SIZE;
+        // Svæver lidt over jorden
+        const yPos = CONFIG.GROUND_Y - size - 40 - Math.random() * 60;
+        powerups.push({
+            x: canvas.width,
+            y: yPos,
+            width: size,
+            height: size,
+            collected: false,
+            floatOffset: Math.random() * Math.PI * 2 // til svæveanimation
+        });
+    }
+
+    function checkCollision(rect1, rect2) {
+        const margin = 5;
+        return rect1.x + margin < rect2.x + rect2.width - margin &&
+               rect1.x + rect1.width - margin > rect2.x + margin &&
+               rect1.y + margin < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y + margin;
+    }
+
+    // Cloud states til parallax
+    let clouds = [
+        { x: 150, y: 60, scale: 1.2, speed: 0.1 },
+        { x: 450, y: 40, scale: 0.8, speed: 0.2 },
+        { x: 750, y: 70, scale: 1.0, speed: 0.15 },
+        { x: 1050, y: 35, scale: 0.7, speed: 0.25 },
+        { x: 1350, y: 50, scale: 1.4, speed: 0.05 },
+        { x: 250, y: 80, scale: 0.9, speed: 0.18 },
+        { x: 950, y: 55, scale: 1.1, speed: 0.12 }
+    ];
+
+    function update(deltaTime) {
+        if (gameState !== 'running') return;
+
+        // Animations fysik
+        player.scaleX = player.scaleX + (1 - player.scaleX) * 10 * deltaTime;
+        player.scaleY = player.scaleY + (1 - player.scaleY) * 10 * deltaTime;
+
+        // Spillerens fysik med delta time
+        player.velocityY += CONFIG.GRAVITY * deltaTime;
+        player.y += player.velocityY * deltaTime;
+
+        if (player.y >= CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE) {
+            if (player.isJumping) {
+               // Større landing støv    
+               for(let i=0; i<12; i++) {
+                    particles.push({
+                        x: player.x + player.width/2 + (Math.random() * 40 - 20),
+                        y: CONFIG.GROUND_Y,
+                        vx: (Math.random() - 0.5) * 250,
+                        vy: -Math.random() * 60 - 10,
+                        life: 1.0,
+                        decay: 1.2 + Math.random(),
+                        radius: 2 + Math.random() * 6,
+                        color: `hsla(${20 + Math.random()*30}, 60%, 70%, 0.8)` 
+                    });
+                }
+                player.scaleX = 1.4;
+                player.scaleY = 0.6;
+            }
+            player.y = CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE;
+            player.velocityY = 0;
+            player.isJumping = false;
+            player.canDoubleJump = false;
+        }
+
+        // Parallax skyer
+        for (let c of clouds) {
+            c.x -= (obstacleSpeed * c.speed) * deltaTime;
+            if (c.x + 100 * c.scale < 0) {
+                c.x = canvas.width + 50;
+                c.y = 30 + Math.random() * 50;
+            }
+        }
+
+        // Spawn timer med delta time (i sekunder)
+        spawnTimer += deltaTime;
+        if (spawnTimer >= nextSpawn) {
+            spawnObstacle();
+            spawnTimer = 0;
+            // Score-baseret reduktion af intervallet (sværere over tid)
+            const currentMin = Math.max(CONFIG.SPAWN_MIN_LIMIT, CONFIG.OBSTACLE_SPAWN_MIN - (score * CONFIG.SPAWN_DECREASE_RATE));
+            const currentMax = Math.max(CONFIG.SPAWN_MIN_LIMIT + 0.4, CONFIG.OBSTACLE_SPAWN_MAX - (score * CONFIG.SPAWN_DECREASE_RATE));
+            // Sikr altid minimum pixel-gap som er proportionalt med nuværende fart
+            // Ved lav fart: lille gap (smallere start), ved høj fart: stort gap
+            const dynamicGap = CONFIG.MIN_PIXEL_GAP * (obstacleSpeed / CONFIG.OBSTACLE_SPEED_MAX);
+            const speedBasedMin = dynamicGap / obstacleSpeed;
+            nextSpawn = Math.max(currentMin, speedBasedMin) + Math.random() * Math.max(0.1, currentMax - currentMin);
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            const obs = obstacles[i];
+            obs.x -= obstacleSpeed * deltaTime;
+
+            if (checkCollision(player, obs)) {
+                gameOver();
+                return;
+            }
+
+            if (!obs.scored && obs.x + obs.width < player.x) {
+                obs.scored = true;
+                const points = doublePointsActive ? 2 : 1;
+                score += points;
+                currentScoreEl.textContent = score;
+
+                // Pop effect for score
+                currentScoreEl.classList.remove('stat-pop');
+                void currentScoreEl.offsetWidth;
+                currentScoreEl.classList.add('stat-pop');
+
+                // Floating score tekst
+                floatingTexts.push({
+                    x: obs.x + obs.width / 2,
+                    y: obs.y - 10,
+                    text: doublePointsActive ? '+2' : '+1',
+                    life: 1.0,
+                    color: doublePointsActive ? '#ffe066' : '#ffb347'
+                });
+
+                // Chance for at spawne en powerup
+                if (Math.random() < CONFIG.POWERUP_SPAWN_CHANCE && powerups.length === 0) {
+                    spawnPowerup();
+                }
+            }
+
+            if (obs.x + obs.width < 0) {
+                obstacles.splice(i, 1);
+            }
+        }
+
+        // Opdater partikler
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx * deltaTime;
+            p.y += p.vy * deltaTime;
+            p.life -= p.decay * deltaTime;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Opdater powerups
+        const pSize = CONFIG.POWERUP_SIZE;
+        for (let i = powerups.length - 1; i >= 0; i--) {
+            const pu = powerups[i];
+            pu.x -= obstacleSpeed * deltaTime;
+            pu.floatOffset += deltaTime * 3;
+            if (!pu.collected && checkCollision(player, { x: pu.x, y: pu.y + Math.sin(pu.floatOffset) * 6, width: pu.width, height: pu.height })) {
+                pu.collected = true;
+                doublePointsActive = true;
+                doublePointsTimer = CONFIG.DOUBLE_POINTS_DURATION;
+                powerupHudEl.style.display = '';
+                // Burst partikler
+                for (let k = 0; k < 20; k++) {
+                    particles.push({
+                        x: pu.x + pSize / 2,
+                        y: pu.y + pSize / 2,
+                        vx: (Math.random() - 0.5) * 400,
+                        vy: -Math.random() * 250 - 50,
+                        life: 1.0,
+                        decay: 0.8 + Math.random() * 0.6,
+                        radius: 3 + Math.random() * 5,
+                        color: `hsla(${50 + Math.random() * 20}, 100%, 60%, 0.9)`
+                    });
+                }
+                powerups.splice(i, 1);
+                continue;
+            }
+            if (pu.x + pu.width < 0) {
+                powerups.splice(i, 1);
+            }
+        }
+
+        // Dobbelt point nedtælling
+        if (doublePointsActive) {
+            doublePointsTimer -= deltaTime;
+            powerupTimerEl.textContent = Math.ceil(doublePointsTimer) + 's';
+            if (doublePointsTimer <= 0) {
+                doublePointsActive = false;
+                powerupHudEl.style.display = 'none';
+            }
+        }
+
+        // Øg hastigheden gradvist med delta time
+        if (obstacleSpeed < CONFIG.OBSTACLE_SPEED_MAX) {
+            obstacleSpeed += CONFIG.OBSTACLE_SPEED_INCREMENT * deltaTime * TARGET_FPS;
+        }
+
+        // ========== VISUELLE ANIMATIONER ==========
+        sunRayAngle += deltaTime * 0.4;
+
+        speedLineOffset += obstacleSpeed * deltaTime * 0.5;
+
+        // Player trail når hopper
+        if (player.isJumping) {
+            playerTrail.push({
+                x: player.x + player.width / 2,
+                y: player.y + player.height / 2,
+                radius: player.width / 2 * 0.7,
+                alpha: 0.35
+            });
+        }
+        for (let i = playerTrail.length - 1; i >= 0; i--) {
+            playerTrail[i].alpha -= deltaTime * 3;
+            playerTrail[i].radius *= 0.93;
+            if (playerTrail[i].alpha <= 0) playerTrail.splice(i, 1);
+        }
+
+        // Floating tekster
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            const ft = floatingTexts[i];
+            ft.y -= 60 * deltaTime;
+            ft.life -= deltaTime * 1.8;
+            if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+
+        // Opdater hastigheds-HUD
+        updateSpeedDisplay();
+    }
+
+    function updateSpeedDisplay() {
+        // Beregn hastighed i procent (0-100%)
+        const speedRange = CONFIG.OBSTACLE_SPEED_MAX - CONFIG.OBSTACLE_SPEED_START;
+        const currentProgress = obstacleSpeed - CONFIG.OBSTACLE_SPEED_START;
+        const speedPercent = Math.min(100, Math.round((currentProgress / speedRange) * 100));
+
+        // Konverter til "km/t" - appelsinen ruller! 🍊
+        // 280 px/s = 35 km/t, 2200 px/s = ~275 km/t
+        const kmh = Math.round((obstacleSpeed / CONFIG.OBSTACLE_SPEED_START) * 35);
+        currentSpeedEl.textContent = `${kmh}`;
+
+        // Opdater progress bar
+        speedBarEl.style.width = `${speedPercent}%`;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // ========== HIMMEL ==========
+        // Smuk gradient himmel med flere lag
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, CONFIG.GROUND_Y);
+        skyGradient.addColorStop(0, '#4A90E2');      // Dyb blå top
+        skyGradient.addColorStop(0.3, '#87CEEB');    // Himmelblå
+        skyGradient.addColorStop(0.6, '#B8D4E8');    // Lys blå
+        skyGradient.addColorStop(0.85, '#F5DEB3');   // Beige/peach
+        skyGradient.addColorStop(1, '#E8C5A5');      // Varm horisont
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, canvas.width, CONFIG.GROUND_Y);
+
+        // ========== SOL ==========
+        const sunX = canvas.width - 150;
+        const sunY = 120;
+
+        // Roterende solstråler
+        ctx.save();
+        ctx.translate(sunX, sunY);
+        ctx.rotate(sunRayAngle);
+        const rayCount = 12;
+        for (let i = 0; i < rayCount; i++) {
+            const angle = (i / rayCount) * Math.PI * 2;
+            const inner = 48;
+            const outer = 65 + (i % 3 === 0 ? 14 : 0);
+            ctx.strokeStyle = `rgba(255, 220, 100, ${0.35 + 0.15 * (i % 2)})`;
+            ctx.lineWidth = i % 3 === 0 ? 3 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+            ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Sol glow (større blød glød)
+        const outerGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 80);
+        outerGlow.addColorStop(0, 'rgba(255, 220, 150, 0.4)');
+        outerGlow.addColorStop(0.5, 'rgba(255, 200, 120, 0.2)');
+        outerGlow.addColorStop(1, 'rgba(255, 180, 100, 0)');
+        ctx.fillStyle = outerGlow;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sol kerne
+        const sunGradient = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 40);
+        sunGradient.addColorStop(0, '#FFF9E6');
+        sunGradient.addColorStop(0.4, '#FFE082');
+        sunGradient.addColorStop(0.8, '#FFB74D');
+        sunGradient.addColorStop(1, '#FF9800');
+        ctx.fillStyle = sunGradient;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ========== SKYER ==========
+        for(let c of clouds) {
+            drawCloud(c.x, c.y, c.scale);
+        }
+
+        // ========== SAND DUNES + GULV ==========
+        drawDunes();
+
+        // Tegn støv partikler
+        for(const p of particles) {
+             ctx.globalAlpha = Math.max(0, p.life);
+             ctx.fillStyle = p.color || 'rgba(200, 180, 140, 0.8)';
+             ctx.beginPath();
+             ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+             ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // ========== SPEED LINES (ved høj fart) ==========
+        const speedRatio = (obstacleSpeed - CONFIG.OBSTACLE_SPEED_START) / (CONFIG.OBSTACLE_SPEED_MAX - CONFIG.OBSTACLE_SPEED_START);
+        if (speedRatio > 0.2) {
+            const lineAlpha = Math.min(0.55, (speedRatio - 0.2) * 0.75);
+            ctx.save();
+            // Fan-out fra spillerens position mod venstre kant
+            const originX = player.x + player.width / 2;
+            const originY = player.y + player.height / 2;
+            const lineCount = 16;
+            for (let i = 0; i < lineCount; i++) {
+                const spreadY = (canvas.height * 0.1) + (i / (lineCount - 1)) * (canvas.height * 0.8);
+                const dx = 0 - originX;
+                const dy = spreadY - originY;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / len;
+                const ny = dy / len;
+                const lineLen = 30 + speedRatio * 80 + (i % 3) * 20;
+                const startDist = 60 + (i % 5) * 15 + ((speedLineOffset * (0.5 + i * 0.08)) % 60);
+                const alpha = lineAlpha * (i % 2 === 0 ? 1 : 0.6);
+                ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+                ctx.lineWidth = i % 4 === 0 ? 2 : 1;
+                ctx.beginPath();
+                ctx.moveTo(originX + nx * startDist, originY + ny * startDist);
+                ctx.lineTo(originX + nx * (startDist + lineLen), originY + ny * (startDist + lineLen));
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        for (const obs of obstacles) {
+            drawCactus(obs);
+        }
+
+        // Tegn powerups
+        for (const pu of powerups) {
+            const floatY = pu.y + Math.sin(pu.floatOffset) * 6;
+            const cx = pu.x + pu.width / 2;
+            const cy = floatY + pu.height / 2;
+            const r = pu.width / 2;
+
+            // Glød
+            const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 1.8);
+            glow.addColorStop(0, 'rgba(255, 230, 50, 0.45)');
+            glow.addColorStop(1, 'rgba(255, 230, 50, 0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 1.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Stjerne-cirkel
+            const starGrad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
+            starGrad.addColorStop(0, '#fff176');
+            starGrad.addColorStop(0.5, '#ffe066');
+            starGrad.addColorStop(1, '#ffa000');
+            ctx.fillStyle = starGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Kant
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            // Tekst
+            ctx.fillStyle = '#5d3a00';
+            ctx.font = `bold ${Math.round(pu.width * 0.38)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('2x', cx, cy);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+        }
+
+        ctx.save();
+
+        // ========== PLAYER TRAIL (hop-effekt) ==========
+        for (let i = 0; i < playerTrail.length; i++) {
+            const t = playerTrail[i];
+            const trailGrad = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.radius);
+            trailGrad.addColorStop(0, `rgba(255, 200, 80, ${t.alpha})`);
+            trailGrad.addColorStop(0.5, `rgba(255, 140, 0, ${t.alpha * 0.6})`);
+            trailGrad.addColorStop(1, 'rgba(255, 80, 0, 0)');
+            ctx.fillStyle = trailGrad;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ========== GULV SKYGGE UNDER APPELSINEN ==========
+        if (!player.isJumping) {
+            ctx.fillStyle = 'rgba(0,0,0,0.18)';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width / 2, CONFIG.GROUND_Y + 3, player.width * 0.45, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Skygge rykker ned og skrumper jo højere appelsinen er
+            const heightAboveGround = (CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE) - player.y;
+            const shadowScale = Math.max(0.2, 1 - heightAboveGround / 250);
+            ctx.globalAlpha = shadowScale * 0.15;
+            ctx.fillStyle = 'rgba(0,0,0,1)';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width / 2, CONFIG.GROUND_Y + 3, player.width * 0.45 * shadowScale, 5 * shadowScale, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Flyt origin til appelsinens center for rotation og scaling
+        ctx.translate(player.x + player.width/2, player.y + player.height);
+
+        ctx.scale(player.scaleX, player.scaleY);
+
+        // Hvis hopper, drej appelsin let
+        if (player.isJumping) {
+            ctx.translate(0, -player.height/2);
+            // Roter afhængig af hastighed
+            let rotation = player.velocityY * 0.001; 
+            ctx.rotate(rotation);
+            ctx.translate(0, player.height/2);
+        }
+
+        // Tegn nu appelsinen i lokalt koordinatsystem
+        drawOrange(-player.width/2, -player.height, player.width, player.height);
+        ctx.restore();
+
+        // ========== FLOATING SCORE TEKSTER ==========
+        for (const ft of floatingTexts) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, ft.life);
+            ctx.fillStyle = ft.color || '#ffb347';
+            ctx.font = 'bold 28px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = ft.color || '#ff8c00';
+            ctx.shadowBlur = 12;
+            ctx.fillText(ft.text, ft.x, ft.y);
+            ctx.restore();
+        }
+
+        }
+
+    // ==================== SAND DUNES ====================
+    function drawDunes() {
+        const W = canvas.width;
+        const GY = CONFIG.GROUND_Y;
+        const CH = canvas.height;
+
+        // --- GULV BASE (sand) ---
+        const groundGrad = ctx.createLinearGradient(0, GY, 0, CH);
+        groundGrad.addColorStop(0,   '#E8C882');
+        groundGrad.addColorStop(0.15,'#D4A85A');
+        groundGrad.addColorStop(0.5, '#C49448');
+        groundGrad.addColorStop(1,   '#A07830');
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, GY, W, CH - GY);
+
+        // Tegn en blød dyne-form med bezier-kurver der flyder naturligt ned i underlaget
+        function drawDune(x0, x1, peakX, peakY) {
+            ctx.beginPath();
+            ctx.moveTo(x0, GY);
+            // Venstre skråning op til toppen
+            ctx.bezierCurveTo(
+                x0 + (peakX - x0) * 0.4, GY,
+                peakX - (peakX - x0) * 0.3, peakY,
+                peakX, peakY
+            );
+            // Højre skråning ned (stejlere for ørken-look)
+            ctx.bezierCurveTo(
+                peakX + (x1 - peakX) * 0.25, peakY,
+                x1 - (x1 - peakX) * 0.35, GY,
+                x1, GY
+            );
+            ctx.closePath();
+        }
+
+        // Bageste lag – lyse, lave, vide dyner
+        const farDunes = [
+            { x0: -80,  x1: 560,  px: 160,  py: GY - 36 },
+            { x0: 380,  x1: 880,  px: 590,  py: GY - 28 },
+            { x0: 720,  x1: 1260, px: 960,  py: GY - 42 },
+            { x0: 1100, x1: 1700, px: 1370, py: GY - 32 },
+        ];
+        for (const d of farDunes) {
+            const g = ctx.createLinearGradient(d.x0, d.py, d.x1, GY);
+            g.addColorStop(0,   'rgba(240, 215, 155, 0.5)');
+            g.addColorStop(0.5, 'rgba(225, 195, 125, 0.45)');
+            g.addColorStop(1,   'rgba(205, 170,  95, 0.3)');
+            ctx.fillStyle = g;
+            drawDune(d.x0, d.x1, d.px, d.py);
+            ctx.fill();
+        }
+
+        // Midterste lag – tydelige dyner med lys/skygge
+        const midDunes = [
+            { x0: -60,  x1: 420,  px: 90,   py: GY - 60 },
+            { x0: 240,  x1: 730,  px: 390,  py: GY - 68 },
+            { x0: 580,  x1: 1020, px: 730,  py: GY - 52 },
+            { x0: 880,  x1: 1360, px: 1060, py: GY - 72 },
+            { x0: 1250, x1: 1700, px: 1430, py: GY - 58 },
+        ];
+        for (const d of midDunes) {
+            // Sol lyser fra højre – venstre side lysere, højre mørkere
+            const g = ctx.createLinearGradient(d.x0, d.py, d.x1, GY);
+            g.addColorStop(0,   '#DDB85A');
+            g.addColorStop(0.35,'#E8C870');
+            g.addColorStop(0.65,'#C8A040');
+            g.addColorStop(1,   '#A87C28');
+            ctx.fillStyle = g;
+            drawDune(d.x0, d.x1, d.px, d.py);
+            ctx.fill();
+
+            // Lysrefleks på rygkammen
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 245, 195, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const ridgeX0 = d.x0 + (d.px - d.x0) * 0.5;
+            const ridgeX1 = d.px + (d.x1 - d.px) * 0.15;
+            ctx.moveTo(ridgeX0, d.py + (GY - d.py) * 0.18);
+            ctx.bezierCurveTo(
+                ridgeX0 + (ridgeX1 - ridgeX0) * 0.3, d.py,
+                ridgeX0 + (ridgeX1 - ridgeX0) * 0.7, d.py,
+                ridgeX1, d.py + (GY - d.py) * 0.22
+            );
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Forreste lag – store nære dyner
+        const nearDunes = [
+            { x0: -100, x1: 300,  px: 40,   py: GY - 48 },
+            { x0: 160,  x1: 520,  px: 260,  py: GY - 55 },
+            { x0: 420,  x1: 760,  px: 540,  py: GY - 42 },
+            { x0: 670,  x1: 1050, px: 790,  py: GY - 62 },
+            { x0: 950,  x1: 1290, px: 1080, py: GY - 48 },
+            { x0: 1200, x1: 1560, px: 1340, py: GY - 58 },
+            { x0: 1470, x1: 1720, px: 1570, py: GY - 44 },
+        ];
+        for (const d of nearDunes) {
+            const g = ctx.createLinearGradient(d.x0, d.py, d.x1, GY);
+            g.addColorStop(0,   '#E4C060');
+            g.addColorStop(0.4, '#D4A848');
+            g.addColorStop(1,   '#B08428');
+            ctx.fillStyle = g;
+            drawDune(d.x0, d.x1, d.px, d.py);
+            ctx.fill();
+        }
+
+        // --- SAND-RIPPLE DETALJER ---
+        if (!isMobile) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(165, 130, 60, 0.22)';
+            ctx.lineWidth = 1;
+            const rippleYs = [GY + 8, GY + 17, GY + 28, GY + 40, GY + 54, GY + 70];
+            for (const ry of rippleYs) {
+                ctx.beginPath();
+                ctx.moveTo(0, ry);
+                for (let rx = 0; rx < W; rx += 80) {
+                    ctx.quadraticCurveTo(rx + 20, ry - 2, rx + 40, ry);
+                    ctx.quadraticCurveTo(rx + 60, ry + 2, rx + 80, ry);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // --- HORISONT-LYS ---
+        const horizGrad = ctx.createLinearGradient(0, GY - 15, 0, GY + 10);
+        horizGrad.addColorStop(0,   'rgba(255, 230, 170, 0)');
+        horizGrad.addColorStop(0.5, 'rgba(255, 230, 170, 0.15)');
+        horizGrad.addColorStop(1,   'rgba(220, 185, 110, 0)');
+        ctx.fillStyle = horizGrad;
+        ctx.fillRect(0, GY - 15, W, 25);
+    }
+
+    function drawCloud(x, y, scale) {
+        // Sky skygge
+        ctx.fillStyle = 'rgba(180, 210, 230, 0.4)';
+        ctx.beginPath();
+        ctx.arc(x + 2, y + 4, 20 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 25 * scale + 2, y - 5 * scale + 4, 25 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 50 * scale + 2, y + 4, 20 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 25 * scale + 2, y + 8 * scale + 4, 18 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sky krop
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.beginPath();
+        ctx.arc(x, y, 20 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 25 * scale, y - 5 * scale, 25 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 50 * scale, y, 20 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 25 * scale, y + 8 * scale, 18 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sky highlight (lysning øverst)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.beginPath();
+        ctx.arc(x + 25 * scale - 5, y - 5 * scale - 6, 12 * scale, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawCactus(obs) {
+        const x = obs.x;
+        const y = obs.y;
+        const width = obs.width;
+        const height = obs.height;
+        const seed = obs.seed || 0;
+
+        // Moderne kaktus farvepalette - mere realistisk
+        const cactusBase = '#2D5F3F';
+        const cactusMain = '#3D8B57';
+        const cactusHighlight = '#5CB574';
+        const cactusShadow = '#1A3D2B';
+        const armColor = '#2F6B46';
+        const flowerColors = ['#FF6B9D', '#FFD93D', '#F97068', '#FFA5E3', '#A8E6CF'];
+
+        const variation = (seed % 100) / 100;
+
+        // ========== KAKTUS GLOW ==========
+        if (!isMobile) {
+            const glowPulse = 0.18 + 0.10 * Math.sin(performance.now() / 900 + seed * 0.5);
+            const bodyX2 = x + width * 0.3;
+            const bodyW2 = width * 0.4;
+            const cx = bodyX2 + bodyW2 / 2;
+            const glowR = ctx.createRadialGradient(cx, y + height * 0.5, 0, cx, y + height * 0.5, width * 1.4);
+            glowR.addColorStop(0, `rgba(61, 139, 87, ${glowPulse})`);
+            glowR.addColorStop(0.5, `rgba(92, 181, 116, ${glowPulse * 0.5})`);
+            glowR.addColorStop(1, 'rgba(61, 139, 87, 0)');
+            ctx.fillStyle = glowR;
+            ctx.beginPath();
+            ctx.ellipse(cx, y + height * 0.5, width * 1.4, height * 0.65, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Skygge på gulvet
+        if (!isMobile) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.beginPath();
+            ctx.ellipse(x + width * 0.5, CONFIG.GROUND_Y + 2, width * 0.4, width * 0.15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const bodyX = x + width * 0.3;
+        const bodyWidth = width * 0.4;
+
+        // Hoved krop - gradient for dybde
+        if (!isMobile) {
+            const gradient = ctx.createLinearGradient(bodyX, y, bodyX + bodyWidth, y);
+            gradient.addColorStop(0, cactusHighlight);
+            gradient.addColorStop(0.3, cactusMain);
+            gradient.addColorStop(0.7, cactusBase);
+            gradient.addColorStop(1, cactusShadow);
+            ctx.fillStyle = gradient;
+        } else {
+            ctx.fillStyle = cactusMain;
+        }
+
+        ctx.beginPath();
+        ctx.roundRect(bodyX, y, bodyWidth, height, 8);
+        ctx.fill();
+
+        // Vertikale ribber for tekstur
+        ctx.strokeStyle = cactusShadow;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.3;
+        for (let i = 1; i <= 4; i++) {
+            const ribX = bodyX + (bodyWidth / 5) * i;
+            ctx.beginPath();
+            ctx.moveTo(ribX, y + 4);
+            ctx.lineTo(ribX, y + height - 4);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Highlight på venstre side
+        ctx.fillStyle = cactusHighlight;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.roundRect(bodyX + 2, y + 3, bodyWidth * 0.25, height - 6, [6, 0, 0, 6]);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Arme - varieret baseret på højde og seed
+        if (height > 50) {
+            const hasLeftArm = seed % 3 !== 0;
+            const hasRightArm = seed % 2 === 0;
+
+            // Venstre arm
+            if (hasLeftArm) {
+                const leftArmY = y + height * (0.25 + variation * 0.15);
+                const leftArmHeight = height * (0.15 + variation * 0.1);
+
+                // Arm krop
+                ctx.fillStyle = armColor;
+                ctx.beginPath();
+                ctx.roundRect(x + 2, leftArmY - 6, bodyWidth * 0.4, 12, 4);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.roundRect(x + 2, leftArmY - leftArmHeight, 12, leftArmHeight, 4);
+                ctx.fill();
+
+                // Arm highlight
+                ctx.fillStyle = cactusHighlight;
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.roundRect(x + 3, leftArmY - leftArmHeight, 4, leftArmHeight * 0.7, 3);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+
+            // Højre arm
+            if (hasRightArm) {
+                const rightArmY = y + height * (0.4 + variation * 0.2);
+                const rightArmHeight = height * (0.2 + variation * 0.15);
+
+                // Arm krop
+                ctx.fillStyle = armColor;
+                ctx.beginPath();
+                ctx.roundRect(bodyX + bodyWidth - 2, rightArmY - 6, bodyWidth * 0.45, 12, 4);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.roundRect(bodyX + bodyWidth + bodyWidth * 0.35, rightArmY - rightArmHeight, 12, rightArmHeight, 4);
+                ctx.fill();
+
+                // Arm highlight
+                ctx.fillStyle = cactusHighlight;
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath();
+                ctx.roundRect(bodyX + bodyWidth + bodyWidth * 0.36, rightArmY - rightArmHeight, 4, rightArmHeight * 0.7, 3);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // Kontour for definition
+        ctx.strokeStyle = cactusShadow;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.roundRect(bodyX, y, bodyWidth, height, 8);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Grøn glow-kant
+        if (!isMobile) {
+            const glowEdgePulse = 0.4 + 0.25 * Math.sin(performance.now() / 700 + seed);
+            ctx.strokeStyle = `rgba(92, 181, 116, ${glowEdgePulse})`;
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#5CB574';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.roundRect(bodyX, y, bodyWidth, height, 8);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // Torner (piggene) - FASTE positioner baseret på seed (ikke Math.random!)
+        if (!isMobile && height > 45) {
+            ctx.fillStyle = cactusShadow;
+            // Generer 8 faste torn-positioner baseret på seed
+            for (let i = 0; i < 8; i++) {
+                // Deterministisk pseudo-random baseret på seed og index
+                const pseudoRandomX = ((seed * 7 + i * 13) % 100) / 100;
+                const pseudoRandomY = ((seed * 11 + i * 17) % 100) / 100;
+
+                const thornX = bodyX + (bodyWidth * 0.2) + pseudoRandomX * (bodyWidth * 0.6);
+                const thornY = y + 10 + pseudoRandomY * (height - 20);
+
+                ctx.beginPath();
+                ctx.moveTo(thornX, thornY);
+                ctx.lineTo(thornX - 2, thornY - 4);
+                ctx.lineTo(thornX + 2, thornY - 4);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        // Blomster - varieret farve og position
+        if (!isMobile && seed % 4 === 0) {
+            const flowerColor = flowerColors[seed % flowerColors.length];
+            const flowerX = bodyX + bodyWidth * 0.5;
+            const flowerY = y - 3;
+
+            // Blomst
+            ctx.fillStyle = flowerColor;
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.arc(
+                    flowerX + Math.cos(angle) * 4,
+                    flowerY + Math.sin(angle) * 4,
+                    3, 0, Math.PI * 2
+                );
+                ctx.fill();
+            }
+
+            // Blomstcenter
+            ctx.fillStyle = '#FFD93D';
+            ctx.beginPath();
+            ctx.arc(flowerX, flowerY, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function drawOrange(x, y, width, height) {
+        const centerX = x + width / 2;
+        const centerY = y + height / 2 - 5;
+        const radius = width / 2 - 5;
+        const legY = y + height - 8;
+        const runOffset = gameState === 'running' && !player.isJumping ? Math.sin(animFrame * 0.15) * 5 : 0; 
+
+        // Ben
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(centerX - 12 - runOffset, legY, 6, 12);
+        ctx.fillStyle = '#4169E1';
+        ctx.beginPath();
+        ctx.roundRect(centerX - 16 - runOffset, legY + 8, 14, 8, 3);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(centerX - 14 - runOffset, legY + 10, 8, 2);
+
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(centerX + 6 + runOffset, legY, 6, 12);
+        ctx.fillStyle = '#4169E1';
+        ctx.beginPath();
+        ctx.roundRect(centerX + 2 + runOffset, legY + 8, 14, 8, 3);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(centerX + 4 + runOffset, legY + 10, 8, 2);
+
+        // Krop
+        if (isMobile) {
+            ctx.fillStyle = '#FF9800';
+        } else {
+            const orangeGradient = ctx.createRadialGradient(
+                centerX - radius * 0.3, centerY - radius * 0.3, radius * 0.1,
+                centerX, centerY, radius
+            );
+            orangeGradient.addColorStop(0, '#FFB74D');
+            orangeGradient.addColorStop(0.5, '#FF9800');
+            orangeGradient.addColorStop(1, '#E65100');
+            ctx.fillStyle = orangeGradient;
+        }
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#E65100';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        if (!isMobile) {
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.3)';
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2 + 0.5;
+                const dist = radius * 0.55;
+                ctx.beginPath();
+                ctx.arc(centerX + Math.cos(angle) * dist, centerY + Math.sin(angle) * dist, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Stilk og blad
+        ctx.fillStyle = '#5D4037';
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY - radius - 3, 3, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#4CAF50';
+        ctx.beginPath();
+        ctx.ellipse(centerX + 8, centerY - radius - 2, 10, 5, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (!isMobile) {
+            ctx.strokeStyle = '#388E3C';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(centerX + 3, centerY - radius - 2);
+            ctx.lineTo(centerX + 13, centerY - radius - 2);
+            ctx.stroke();
+        }
+
+        // Ansigt (kig op når hopper, skræmt når dør!)
+        let eyeYOffset = player.isJumping ? -2 : 0;
+        let mouthOffset = player.isJumping ? -1 : 0;
+
+        ctx.fillStyle = '#1A1A1A';
+        ctx.beginPath();
+        if (gameState === 'gameover') {
+             // Skræmte øjne
+             ctx.arc(centerX - 8, centerY - 3, 4, 0, Math.PI * 2);
+             ctx.arc(centerX + 8, centerY - 3, 4, 0, Math.PI * 2);
+        } else {
+            ctx.ellipse(centerX - 8, centerY - 3 + eyeYOffset, 4, 5, 0, 0, Math.PI * 2);
+            ctx.ellipse(centerX + 8, centerY - 3 + eyeYOffset, 4, 5, 0, 0, Math.PI * 2);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        if (gameState === 'gameover') {
+             ctx.arc(centerX - 8, centerY - 3, 1.5, 0, Math.PI * 2);
+             ctx.arc(centerX + 8, centerY - 3, 1.5, 0, Math.PI * 2);
+        } else {
+             ctx.arc(centerX - 6, centerY - 5 + eyeYOffset, 2, 0, Math.PI * 2);
+             ctx.arc(centerX + 10, centerY - 5 + eyeYOffset, 2, 0, Math.PI * 2);
+        }
+        ctx.fill();
+
+        ctx.strokeStyle = '#5D4037';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (gameState === 'gameover') {
+            // Åben mund (skrig!)
+            ctx.fillStyle = '#5D4037';
+            ctx.arc(centerX, centerY + 6, 4, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.arc(centerX, centerY + 5 + mouthOffset, 6, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+        }
+
+        if (!isMobile) {
+            ctx.fillStyle = 'rgba(255, 138, 101, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(centerX - 14, centerY + 3, 5, 3, 0, 0, Math.PI * 2);
+            ctx.ellipse(centerX + 14, centerY + 3, 5, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function gameLoop(currentTime) {
+        // Beregn delta time i sekunder
+        if (lastTime === 0) {
+            lastTime = currentTime;
+        }
+        const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1); // Max 100ms for at undgå store spring
+        lastTime = currentTime;
+
+        animFrame++;
+        update(deltaTime);
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    async function startGame() {
+        console.log('startGame kaldt');
+        resetGame();
+        animFrame = 0;
+        lastTime = 0;
+        gameState = 'running';
+        overlay.classList.add('hidden');
+        console.log('Spil startet, gameState:', gameState);
+    }
+
+    async function gameOver() {
+        gameState = 'gameover';
+
+        // Screen shake ved død!
+        const container = document.querySelector('.game-canvas-container');
+        container.classList.add('death-shake');
+        setTimeout(() => container.classList.remove('death-shake'), 500);
+
+        // Opdater personlig rekord hvis relevant
+        const isPersonalBest = score > bestScore;
+        if (isPersonalBest) {
+            bestScore = score;
+            bestScoreEl.textContent = bestScore;
+        }
+
+        // Vis popup
+        const popupTitle = document.getElementById('popup-title');
+        finalScoreEl.textContent = score;
+        document.getElementById('score-input').value = score;
+
+        if (score <= 0) {
+            popupTitle.textContent = '💀 Game Over';
+        } else {
+            popupTitle.textContent = isPersonalBest ? '🏆 Ny Rekord!' : '🎉 Spillet er slut!';
+        }
+
+        popup.style.display = 'flex';
+    }
+
+    function showGameOverOverlay() {
+        overlayTitle.textContent = 'Game Over!';
+        overlayMessage.textContent = `Score: ${score} point`;
+        btnStart.textContent = 'PRØV IGEN';
+        overlay.classList.remove('hidden');
+    }
+
+    btnStart.addEventListener('click', () => {
+        console.log('START knap klikket, gameState:', gameState);
+        if (gameState === 'idle' || gameState === 'gameover') startGame();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            const tag = document.activeElement?.tagName;
+            if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+                e.preventDefault();
+                if (gameState === 'idle' || gameState === 'gameover') {
+                    if (popup.style.display !== 'flex') {
+                        startGame();
+                    }
+                } else if (gameState === 'running') {
+                    jump();
+                }
+            }
+        }
+    });
+
+    canvas.addEventListener('click', () => {
+        if (gameState === 'running') {
+            jump();
+        }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (gameState === 'running') {
+            jump();
+        }
+    }, { passive: false });
+
+    btnClosePopup.addEventListener('click', () => {
+        popup.style.display = 'none';
+        gameState = 'gameover';
+        showGameOverOverlay();
+    });
+
+    console.log('Appelsin Hop JavaScript loaded. Canvas:', canvas, 'btnStart:', btnStart);
+    draw();
+    requestAnimationFrame(gameLoop);
+})();
+</script>
+<partial name="_ValidationScriptsPartial" />
+}

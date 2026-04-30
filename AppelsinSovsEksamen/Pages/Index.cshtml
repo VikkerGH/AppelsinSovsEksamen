@@ -17,7 +17,14 @@
                     <h5 class="card-title fw-bold" style="color: #ff8c00;">@game.Name</h5>
                     <p class="card-text" style="color: #aaa;">@game.Description</p>
                     <div class="mt-auto">
-                        <a href="#" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Spil nu</a>
+                        @if (game.Name == "Appelsin Hop")
+                        {
+                            <a asp-page="/Game/AppelsinHop" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Spil nu</a>
+                        }
+                        else
+                        {
+                            <a href="#" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Kommer snart</a>
+                        }
                     </div>
                 </div>
             </div>

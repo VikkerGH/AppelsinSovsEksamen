@@ -1,4 +1,34 @@
 ﻿@page
 @model AppelsinSovsEksamen.Pages.HighScore.IndexModel
 @{
+    ViewData["Title"] = "Highscore";
 }
+
+<h2 class="mb-4" style="color: #ff8c00;">🏆 Highscore Liste</h2>
+<p class="text-muted mb-4">Top 5 scores per spil. Spil spillene for at tilføje din score!</p>
+
+<table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Spiller</th>
+            <th>Score</th>
+            <th>Spil</th>
+            <th>Dato</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ int rank = 1; }
+        @foreach (var hs in Model.HighScores)
+        {
+            <tr>
+                <td>@rank++</td>
+                <td>@(!string.IsNullOrEmpty(hs.PlayerName) ? hs.PlayerName : "Anonym")</td>
+                <td><strong>@hs.Score</strong></td>
+                <td>@(Model.Games.FirstOrDefault(g => g.Id == hs.GameId)?.Name ?? "Ukendt")</td>
+                <td>@hs.Datetime.ToString("dd/MM/yyyy HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

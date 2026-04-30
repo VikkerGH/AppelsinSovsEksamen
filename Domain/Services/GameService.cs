@@ -16,16 +16,18 @@ namespace Domain.Services
         public IEnumerable<Game> GetAll() => _persist.GetAll();
         public Game GetById(Guid id) => _persist.GetById(id)
             ?? throw new ArgumentException("Game not found", nameof(id));
-        public Game Create(string name, decimal price)
+        public Game Create(string name, string description = "")
         {
-            var game = new Game();
+            var game = new Game { Name = name, Description = description };
             _persist.Add(game);
             return game;
         }
-        public void Edit(Guid id, string newName, decimal newPrice)
+        public void Edit(Guid id, string newName, string newDescription)
         {
             var game = _persist.GetById(id)
                 ?? throw new ArgumentException("Game not found", nameof(id));
+            game.Name = newName;
+            game.Description = newDescription;
             _persist.Update(game);
         }
         public void Delete(Guid id)
