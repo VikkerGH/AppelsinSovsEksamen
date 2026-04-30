@@ -1,4 +1,37 @@
-﻿@page
+﻿@page "{id:guid}"
 @model AppelsinSovsEksamen.Pages.AdminUser.UserDeleteModel
 @{
+    ViewData["Title"] = "Slet bruger";
 }
+
+<h1 class="mb-4">Slet bruger</h1>
+
+@if (Model.UserToDelete is null)
+{
+    <div class="alert alert-danger">Brugeren blev ikke fundet.</div>
+}
+else
+{
+    <div class="card border-danger mb-4" style="max-width: 500px;">
+        <div class="card-header bg-danger text-white fw-bold">
+            Advarsel – denne handling kan ikke fortrydes
+        </div>
+        <div class="card-body">
+            <p>Du er ved at slette følgende bruger og al tilhørende data:</p>
+            <dl class="row">
+                <dt class="col-sm-4">Navn</dt>
+                <dd class="col-sm-8">@Model.UserToDelete.Name</dd>
+                <dt class="col-sm-4">Email</dt>
+                <dt class="col-sm-4">Oprettet</dt>
+                <dd class="col-sm-8">@Model.UserToDelete.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <form method="post">
+                <button type="submit" class="btn btn-danger">Bekræft sletning</button>
+            </form>
+            <a asp-page="UserIndex" class="btn btn-secondary">Annuller</a>
+        </div>
+    </div>
+}
+

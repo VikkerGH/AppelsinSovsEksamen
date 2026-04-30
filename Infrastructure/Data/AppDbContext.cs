@@ -23,6 +23,17 @@ namespace Infrastructure.Data
                 new { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Appelsin Hop", Description = "Hop over forhindringerne og scor point!" },
                 new { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Hvor filan er appelsinen?", Description = "Find den skjulte appelsin så hurtigt som muligt. Ingen hjælp. Ingen hints. Den er der et sted" }
             );
+
+            modelBuilder.Entity<User>().HasData(
+    new
+    {
+        Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        Name = "Test Admin",
+        Email = "admin@test.dk",
+        Password = "test123",
+        CreatedAt = DateTime.UtcNow
+    }
+);
         }
     }
 }
