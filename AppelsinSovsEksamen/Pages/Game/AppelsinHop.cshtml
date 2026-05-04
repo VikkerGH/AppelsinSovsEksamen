@@ -90,11 +90,29 @@
         <h2 id="popup-title">🏆 Godt klaret!</h2>
         <p class="final-score">Du scorede: <strong id="final-score-value">0</strong> point</p>
         <form method="post" id="highscore-form">
-            <div id="guest-name-area">
-                <label for="player-name">Dit navn til highscore:</label>
-                <input type="text" name="PlayerName" id="player-name" maxlength="20" placeholder="Indtast dit navn..." required>
-                <input type="hidden" name="Score" id="score-input" value="0">
-            </div>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Score" id="score-input" value="0" />
+
+            @if (Model.IsLoggedIn)
+            {
+                <div class="logged-in-info">
+                    ✅ Gemmes som <strong>@Model.SessionUserName</strong>
+                </div>
+                <input type="hidden" name="PlayerName" value="@Model.SessionUserName" />
+            }
+            else
+            {
+                <div id="guest-name-area">
+                    <label for="player-name">Dit navn til highscore:</label>
+                    <input type="text" name="PlayerName" id="player-name"
+                           maxlength="20" placeholder="Indtast dit navn..." required />
+                </div>
+                <p style="font-size:0.85rem; color:#888; margin-top:0.5rem;">
+                    <a href="/UserSides/UserIndex" style="color:#ff8c00;">Log ind</a>
+                    for at gemme på din profil.
+                </p>
+            }
+
             <button type="submit" class="btn-submit">💾 Gem Score</button>
         </form>
         <button class="btn-start" id="btn-close-popup" style="margin-top:1rem;">Prøv igen</button>
