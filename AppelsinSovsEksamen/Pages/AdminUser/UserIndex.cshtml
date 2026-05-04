@@ -1,4 +1,30 @@
 ﻿@page
 @model AppelsinSovsEksamen.Pages.AdminUser.UserIndexModel
-@{
-}
+
+<h1 class="mb-4">Brugerliste</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Navn</th>
+            <th>Oprettet</th>
+            <th>Handlinger</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.Name</td>
+                <td>@user.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</td>
+                <td>
+                    <a asp-page="UserDelete"
+                       asp-route-id="@user.Id"
+                       class="btn btn-danger btn-sm">
+                        Slet
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

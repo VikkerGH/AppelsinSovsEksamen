@@ -13,16 +13,26 @@ namespace Infrastructure.Data
         public DbSet<HighScore> HighScores => Set<HighScore>();
         public DbSet<Kategori> Kategorier => Set<Kategori>();
 
-        // Test spil
+        // Seed data for spil
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Vi bruger faste Guids, så EF Core kan genkende dem ved hver opdatering
             modelBuilder.Entity<Game>().HasData(
-                new { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Appelsin Hop", Description = "Hop over forhindringerne og scor point!" },
-                new { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Hvor filan er appelsinen?", Description = "Find den skjulte appelsin så hurtigt som muligt. Ingen hjælp. Ingen hints. Den er der et sted" }
+                new { Id = Guid.Parse("a1b2c3d4-e5f6-4789-a012-3456789abcde"), Name = "Appelsin Hop", Description = "Hop over forhindringerne og scor point!" },
+                new { Id = Guid.Parse("b2c3d4e5-f6a7-4890-b123-456789abcdef"), Name = "Hvor filan er appelsinen?", Description = "Find den skjulte appelsin så hurtigt som muligt. Ingen hjælp. Ingen hints. Den er der et sted" }
             );
+
+            modelBuilder.Entity<User>().HasData(
+    new
+    {
+        Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        Name = "Test Admin",
+        Email = "admin@test.dk",
+        Password = "test123",
+        CreatedAt = DateTime.UtcNow
+    }
+);
         }
     }
 }

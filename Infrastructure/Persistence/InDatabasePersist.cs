@@ -38,6 +38,9 @@ namespace Infrastructure.Persistence
             if (entity is null) return;
             _set.Remove(entity);
             _db.SaveChanges();
+
+            // Detach entiteten for at undgå tracking conflicts
+            _db.Entry(entity).State = EntityState.Detached;
         }
     }
 }

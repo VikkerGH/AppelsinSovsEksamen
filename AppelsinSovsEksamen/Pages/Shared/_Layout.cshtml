@@ -24,7 +24,40 @@
                             <a class="nav-link text-light" asp-area="" asp-page="/Index">Forside</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-page="/HighScore/Index">Highscore</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-page="/Privacy">Privacy</a>
+                        </li>
+                        @if (Context.Session.GetString("UserId") == null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-page="/UserSides/UserLogIn">Log ind</a>
+                            </li>
+                        }
+                        </ul>
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                        <div class="ms-auto d-flex align-items-center">
+                            <span class="nav-link" style="color: #ff8c00;">
+                                @Context.Session.GetString("UserName")
+                            </span>
+
+                            <a asp-page="/UserSides/UserProfile" class="ms-3" style="text-decoration:none;">
+                                <div style="width:38px; height:38px; border-radius:50%;
+                            background:linear-gradient(135deg,#ff8c00,#e67e22);
+                            display:flex; align-items:center; justify-content:center;
+                            font-size:1.2rem; font-weight:900; color:#fff;
+                            border:2px solid rgba(255,179,71,0.5);
+                            box-shadow:0 0 10px rgba(255,140,0,0.3);">
+                                    @Context.Session.GetString("UserName")!.Substring(0, 1).ToUpper()
+                                </div>
+                            </a>
+                        </div>
+                        }
+                    </div>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-page="/AdminUser/UserIndex">Administrer brugere</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-page="/AdminProduct/ProductIndex">Admin-Merch</a>
