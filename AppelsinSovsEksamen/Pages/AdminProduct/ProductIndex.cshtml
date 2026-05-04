@@ -2,3 +2,32 @@
 @model AppelsinSovsEksamen.Pages.AdminProduct.ProductIndexModel
 @{
 }
+
+<h1>Oversigt over Merchandise</h1>
+
+<a asp-page="./ProductCreate">Opret nyt produkt</a>
+
+<br />
+<br />
+
+<table border="1" cellpadding="5">
+    <thead>
+        <tr>
+            <th>Navn</th>
+            <th>Pris</th>
+            <th>Billede URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Products)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Price kr.</td>
+                <td>
+                    <img src="@item.ImageUrl" alt="@item.Name" style="max-width: 100px; max-height: 100px;" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

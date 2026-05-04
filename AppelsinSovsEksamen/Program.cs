@@ -13,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(InDatabasePersist<>));
 
+builder.Services.AddScoped<Domain.Services.ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

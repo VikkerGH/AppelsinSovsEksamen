@@ -9,7 +9,10 @@ namespace Domain.Models
         public Product() { }
         public Guid Id { get; private set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
-        public double Price { get; set; } 
-        public Kategori Kategori { get; set; }
+        public decimal Price { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public Kategori? Kategori { get; set; }
+        public Guid KategoriId { get; set; }
+
     }
 }

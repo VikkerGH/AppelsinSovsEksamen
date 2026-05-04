@@ -16,11 +16,9 @@ namespace Domain.Services
         public IEnumerable<Product> GetAll() => _persist.GetAll();
         public Product GetById(Guid id) => _persist.GetById(id)
             ?? throw new ArgumentException("Product not found", nameof(id));
-        public Product Create(string name, decimal price)
+        public void Create(Product newProduct)
         {
-            var product = new Product();
-            _persist.Add(product);
-            return product;
+            _persist.Add(newProduct);
         }
         public void Edit(Guid id, string newName, decimal newPrice)
         {

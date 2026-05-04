@@ -2,3 +2,16 @@
 @model AppelsinSovsEksamen.Pages.Product.IndexModel
 @{
 }
+
+<h1>AppelsinSovs Shop</h1>
+
+@foreach (var product in Model.Products)
+{
+    <div>
+        <img src="@product.ImageUrl" alt="@product.Name" style="max-width: 200px;" />
+        <h3>@product.Name</h3>
+        <p>Pris: @product.Price kr.</p>
+        <button>Køb nu</button>
+    </div>
+    <hr />
+}

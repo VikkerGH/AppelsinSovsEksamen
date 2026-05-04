@@ -1,4 +1,35 @@
 ﻿@page
 @model AppelsinSovsEksamen.Pages.AdminProduct.ProductCreateModel
-@{
-}
+
+<h1>Opret nyt Merchandise</h1>
+
+<form method="post">
+    <p>
+        <label>Navn på produkt:</label><br />
+        <input asp-for="NewProduct.Name" />
+    </p>
+
+    <p>
+        <label>Pris (kr.):</label><br />
+        <input asp-for="NewProduct.Price" type="number" step="0.01" />
+    </p>
+
+    <p>
+        <label>Billede-URL:</label><br />
+        <input asp-for="NewProduct.ImageUrl" />
+    </p>
+
+    <p>
+        <label>Vælg Kategori:</label><br />
+        <select asp-for="NewProduct.KategoriId" required>
+            <option value="">-- Vælg en kategori --</option>
+
+            @foreach (var kat in Model.Kategorier)
+            {
+                <option value="@kat.Id">@kat.Name</option>
+            }
+        </select>
+    </p>
+
+    <button type="submit">Gem i databasen</button>
+</form>
