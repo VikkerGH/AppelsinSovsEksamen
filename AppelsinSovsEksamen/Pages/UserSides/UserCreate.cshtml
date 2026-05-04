@@ -1,0 +1,64 @@
+﻿@page
+@model AppelsinSovsEksamen.Pages.User.CreateUserModel
+@{
+    ViewData["Title"] = "Opret profil";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        <div class="card border-0 shadow" style="background-color: #2a2a2a; color: #f0f0f0;">
+            <div class="card-body p-4">
+
+                <h2 class="card-title fw-bold mb-4" style="color: #ff8c00;">Opret profil</h2>
+
+                @* Viser fejlbesked hvis noget g�r galt *@
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger">@Model.ErrorMessage</div>
+                }
+
+                <form method="post">
+                    @* Anti-forgery token - sikkerhed mod CSRF angreb *@
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="InputName" class="form-label" style="color: #aaa;">Brugernavn</label>
+                        <input asp-for="InputName"
+                               class="form-control"
+                               style="background-color: #1a1a1a; color: #f0f0f0; border-color: #444;"
+                               placeholder="Vælg et brugernavn" />
+                        <span asp-validation-for="InputName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="InputPassword" class="form-label" style="color: #aaa;">Adgangskode</label>
+                        <input asp-for="InputPassword"
+                               type="password"
+                               class="form-control"
+                               style="background-color: #1a1a1a; color: #f0f0f0; border-color: #444;"
+                               placeholder="Minimum 6 tegn" />
+                        <span asp-validation-for="InputPassword" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit"
+                            class="btn w-100 fw-bold"
+                            style="background-color: #ff8c00; color: #1a1a1a;">
+                        Opret konto
+                    </button>
+                </form>
+
+                <hr style="border-color: #444;" class="my-3" />
+
+                <p class="text-center mb-0" style="color: #aaa;">
+                    Har du allerede en konto?
+                    <a href="/UserSides/UserLogIn" style="color: #ff8c00;">Log ind her</a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
