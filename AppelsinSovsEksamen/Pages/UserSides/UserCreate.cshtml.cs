@@ -1,4 +1,5 @@
 using Domain.Persistence;
+using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
@@ -54,18 +55,13 @@ namespace AppelsinSovsEksamen.Pages.User
             }
 
             // Opret den nye bruger
-            var nyBruger = new Domain.Models.User
-            {
-                Id = Guid.NewGuid(),
-                Name = InputName,
-                Password = InputPassword,
-                CreatedAt = DateTime.UtcNow
-            };
+            var userService = new UserService(_userRepository);
+            var nyBruger = userService.Create(InputName, InputPassword);
 
             // Gem i databasen via repository
-            _userRepository.Add(nyBruger);
+            //_userRepository.Add(nyBruger);
 
-            // Gem brugerinfo i session s� de er logget ind med det samme
+            // Gem brugerinfo i session så de er logget ind med det samme
             HttpContext.Session.SetString("UserId", nyBruger.Id.ToString());
             HttpContext.Session.SetString("UserName", nyBruger.Name);
 
