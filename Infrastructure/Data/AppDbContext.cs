@@ -24,15 +24,20 @@ namespace Infrastructure.Data
             );
 
             modelBuilder.Entity<User>().HasData(
-    new
-    {
-        Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-        Name = "Test Admin",
-        Email = "admin@test.dk",
-        Password = "test123",
-        CreatedAt = DateTime.UtcNow
-    }
-);
+                new
+                {
+                    Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                    Name = "Test Admin",
+                    Email = "admin@test.dk",
+                    Password = "test123",
+                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<HighScore>()
+                .HasOne(h => h.User)
+                .WithMany(u => u.HighScores)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
