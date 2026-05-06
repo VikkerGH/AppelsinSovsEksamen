@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="AppelsinSovsEksamen\Data\" />
+    <Folder Include="wwwroot\unitygame\" />
   </ItemGroup>
 
 </Project>
