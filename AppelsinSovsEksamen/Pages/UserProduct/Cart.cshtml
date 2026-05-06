@@ -1,0 +1,113 @@
+﻿@page
+@model AppelsinSovsEksamen.Pages.UserProduct.Cart.CartModel
+@{
+    ViewData["Title"] = "Min kurv";
+}
+
+<div style="max-width:800px; margin:2rem auto; padding:0 1rem;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold" style="color:#ff8c00;">🛒 Min kurv</h1>
+        <a asp-page="/UserProduct/Index" style="color:#aaa; text-decoration:none;">
+            ← Fortsæt shopping
+        </a>
+    </div>
+
+    @if (!Model.CartItems.Any())
+    {
+        <div class="text-center py-5"
+             style="background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+                        border:1px solid rgba(255,179,71,0.2); border-radius:20px;">
+            <div style="font-size:4rem;">🛒</div>
+            <h4 style="color:#aaa;">Din kurv er tom</h4>
+            <a asp-page="/UserProduct/Index" class="btn mt-3"
+               style="background:#ff8c00; color:#fff; border-radius:50px; padding:10px 24px;">
+                Se produkter
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 mb-4"
+             style="background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+                        border:1px solid rgba(255,179,71,0.2)!important;
+                        border-radius:20px; overflow:hidden;">
+
+            @foreach (var item in Model.CartItems)
+            {
+                <div class="d-flex align-items-center gap-3 p-3"
+                     style="border-bottom:1px solid #333;">
+
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.Name"
+                             style="width:70px; height:70px; object-fit:cover;
+                                                border-radius:10px; flex-shrink:0;" />
+                    }
+                    else
+                    {
+                        <div style="width:70px; height:70px; background:#333;
+                                                border-radius:10px; display:flex; align-items:center;
+                                                justify-content:center; font-size:1.8rem; flex-shrink:0;">
+                            🍊
+                        </div>
+                    }
+
+                    <div class="flex-grow-1">
+                        <div class="fw-bold" style="color:#fff;">@item.Name</div>
+                        <div style="color:#aaa; font-size:0.9rem;">@item.Price.ToString("N2") kr. stk.</div>
+                    </div>
+
+                    <div class="text-center" style="min-width:50px;">
+                        <div style="color:#ff8c00; font-size:1.3rem; font-weight:700;">@item.Quantity</div>
+                        <div style="color:#666; font-size:0.75rem;">stk.</div>
+                    </div>
+
+                    <div style="color:#ffb347; font-weight:700; min-width:80px; text-align:right;">
+                        @((item.Price * item.Quantity).ToString("N2")) kr.
+                    </div>
+
+                    <form method="post" asp-page-handler="Remove">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="RemoveProductId" value="@item.ProductId" />
+                        <button type="submit" class="btn btn-sm"
+                                style="background:#333; color:#e74c3c;
+                                               border:1px solid #444; border-radius:8px;">
+                            🗑️
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <div class="card border-0 p-4"
+             style="background:linear-gradient(135deg,#2a2a2a,#1a1a1a);
+                        border:1px solid rgba(255,179,71,0.3)!important; border-radius:20px;">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span style="color:#aaa;">@Model.CartItems.Sum(i => i.Quantity) varer</span>
+                <span style="color:#ff8c00; font-size:1.5rem; font-weight:900;">
+                    I alt: @Model.Total.ToString("N2") kr.
+                </span>
+            </div>
+
+            <div class="d-flex gap-3">
+                <form method="post" asp-page-handler="Clear" class="flex-grow-1">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn w-100"
+                            style="background:#333; color:#aaa; border:1px solid #444; border-radius:10px;"
+                            onclick="return confirm('Tøm kurven?')">
+                        🗑️ Tøm kurv
+                    </button>
+                </form>
+
+                <button class="btn flex-grow-1 fw-bold"
+                        style="background:linear-gradient(135deg,#ff8c00,#e67e22);
+                                   color:#fff; border-radius:10px; border:none;"
+                        onclick="alert('Bestillingsfunktion kommer snart! 🍊')">
+                    ✅ Gå til betaling
+                </button>
+            </div>
+        </div>
+    }
+</div>
