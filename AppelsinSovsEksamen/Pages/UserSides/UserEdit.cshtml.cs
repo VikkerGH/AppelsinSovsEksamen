@@ -33,5 +33,10 @@ namespace AppelsinSovsEksamen.Pages.User
                 return NotFound();
             }
         }
+        public IActionResult OnPostLogUd()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToPage("/Index");
+        }
     }
 }
