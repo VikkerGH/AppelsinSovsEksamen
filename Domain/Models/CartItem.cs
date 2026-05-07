@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Domain.Models
 {
+    // Bruges til at gemme kurv-data i session som JSON – ikke i databasen
     public class CartItem
     {
         public Guid ProductId { get; set; }

@@ -21,6 +21,7 @@ namespace AppelsinSovsEksamen.Pages.HighScore
 
         public void OnGet()
         {
+            // Scores sorteres på tværs af alle spil – Razor-siden grupperer dem selv pr. spil
             HighScores = _highScoreService.GetAll().OrderByDescending(h => h.Score);
             Games = _gameService.GetAll();
         }

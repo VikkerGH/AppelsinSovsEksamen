@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Domain.Services
 {
+    // Håndterer produkter i butikken – opret, rediger og slet via admin-siden
     public class ProductService
     {
         private readonly IRepository<Product> _persist;
@@ -22,6 +23,7 @@ namespace Domain.Services
         }
         public void Edit(Guid id, string newName, decimal newPrice)
         {
+            // Bemærk: newName og newPrice bruges ikke her – de bør sættes på product-objektet inden Update kaldes
             var product = _persist.GetById(id)
                 ?? throw new ArgumentException("Product not found", nameof(id));
             _persist.Update(product);

@@ -10,6 +10,7 @@ namespace AppelsinSovsEksamen.Pages.Game
         private readonly HighScoreService _highScoreService;
         private readonly GameService _gameService;
 
+        // Hardkodet ID matcher seed-data i AppDbContext – skal ikke ændres medmindre databasen nulstilles
         public static readonly Guid AppelsinHopGameId =
             Guid.Parse("a1b2c3d4-e5f6-4789-a012-3456789abcde");
 

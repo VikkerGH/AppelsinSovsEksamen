@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Domain.Services
 {
+    // Håndterer al forretningslogik for spil – bruges primært af admin-siderne
     public class GameService
     {
         private readonly IRepository<Game> _persist;  
@@ -34,6 +35,8 @@ namespace Domain.Services
         {
             _persist.Delete(id);
         }
+
+
     }
 }
 

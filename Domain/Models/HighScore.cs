@@ -12,6 +12,7 @@ namespace Domain.Models
         public int Score { get; set; }
         public string PlayerName { get; set; } = string.Empty;
         public Guid GameId { get; set; }
+        // UserId er nullable – ikke-loggede spillere kan stadig gemme en score
         public Guid? UserId { get; set; }
         public User? User { get; set; }
     }

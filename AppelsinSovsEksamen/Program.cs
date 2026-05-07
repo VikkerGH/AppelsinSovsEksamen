@@ -20,7 +20,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Generisk repository til alle modeller (User, Product, HighScore, Kategori osv.)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(InDatabasePersist<>));
+// Game får sit eget repository, da det skal hente Kategori med via Include
+builder.Services.AddScoped<IRepository<Domain.Models.Game>, GameRepository>();
 
 builder.Services.AddScoped<Domain.Services.ProductService>();
 builder.Services.AddScoped<HighScoreService>();

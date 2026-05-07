@@ -8,6 +8,7 @@ namespace AppelsinSovsEksamen.Pages.UserProduct.Cart
     public class CartModel : PageModel
     {
         public List<CartItem> CartItems { get; set; } = new();
+        // Udregnes dynamisk fra kurven – ikke gemt nogen steder
         public decimal Total => CartItems.Sum(i => i.Price * i.Quantity);
 
         [BindProperty]
