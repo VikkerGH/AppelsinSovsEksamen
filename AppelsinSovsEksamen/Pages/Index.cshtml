@@ -8,6 +8,25 @@
     <img src="~/images/logo.png" alt="Logo" class="img-fluid" style="max-height: 320px;" />
 </div>
 
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-6">
+        <input type="text" name="SearchString" value="@Model.SearchString"
+               class="form-control" placeholder="Søg efter spil..." style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;" />
+    </div>
+    <div class="col-md-4">
+        <select name="SelectedKategori" class="form-select" style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;">
+            <option value="">Alle kategorier</option>
+            @foreach (var kat in Model.Kategorier)
+            {
+                <option value="@kat.Name" selected="@(Model.SelectedKategori == kat.Name ? "selected" : null)">@kat.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Søg</button>
+    </div>
+</form>
+
 <div class="row row-cols-1 row-cols-md-3 g-4">
     @foreach (var game in Model.Games)
     {
@@ -16,6 +35,10 @@
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title fw-bold" style="color: #ff8c00;">@game.Name</h5>
                     <p class="card-text" style="color: #aaa;">@game.Description</p>
+                    @if (game.Kategori != null)
+                    {
+                        <span class="badge mb-2" style="background-color: #ff8c00; color: #1a1a1a;">@game.Kategori.Name</span>
+                    }
                     <div class="mt-auto">
                         @if (game.Name == "Appelsin Hop")
                         {

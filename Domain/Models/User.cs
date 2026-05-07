@@ -12,6 +12,7 @@ namespace Domain.Models
         public string Password { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // Navigation property – EF bruger den til cascade delete (se AppDbContext)
         public ICollection<HighScore> HighScores { get; private set; } = new List<HighScore>();
     }
 }

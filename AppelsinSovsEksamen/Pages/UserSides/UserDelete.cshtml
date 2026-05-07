@@ -1,4 +1,34 @@
-﻿@page
+﻿@page "{id:guid}"
 @model AppelsinSovsEksamen.Pages.User.UserDeleteModel
 @{
+    ViewData["Title"] = "Slet konto";
 }
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        @if (Model.UserToDelete is not null)
+        {
+            <div class="card border-0 shadow" style="background-color: #2a2a2a; color: #f0f0f0;">
+                <div class="card-body p-4">
+                    <h2 class="fw-bold mb-4" style="color: #cc0000;">Slet konto</h2>
+                    <p style="color: #aaa;">Du er ved at slette din konto permanent. Dette kan ikke fortrydes.</p>
+                    <dl class="row mb-4">
+                        <dt class="col-sm-4" style="color: #aaa;">Brugernavn</dt>
+                        <dd class="col-sm-8">@Model.UserToDelete.Name</dd>
+                    </dl>
+                    <hr style="border-color: #444;" />
+                    <form method="post">
+                        <button type="submit"
+                                class="btn w-100 fw-bold mt-3"
+                                style="background-color: #cc0000; color: white;">
+                            Bekræft sletning
+                        </button>
+                    </form>
+                    <a asp-page="/User/UserEdit" class="btn w-100 fw-bold mt-2" style="background-color: #444; color: white;">
+                        Annuller
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

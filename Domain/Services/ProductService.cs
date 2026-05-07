@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Domain.Services
 {
+    // Håndterer produkter i butikken – opret, rediger og slet via admin-siden
     public class ProductService
     {
         private readonly IRepository<Product> _persist;
