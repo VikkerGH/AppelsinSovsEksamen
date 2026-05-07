@@ -1,4 +1,19 @@
-﻿@page
+﻿@page "{id:guid}"
 @model AppelsinSovsEksamen.Pages.AdminProduct.ProductDeleteModel
-@{
-}
+
+<h1>Slet Merchandise</h1>
+
+<h3 style="color: red;">Er du sikker på, at du vil slette dette produkt?</h3>
+<p>Dette fjerner produktet fra databasen. Det kan ikke fortrydes</p>
+
+<div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; max-width: 400px;">
+    <p><strong>Navn:</strong> @Model.ProductToDelete.Name</p>
+    <p><strong>Pris:</strong> @Model.ProductToDelete.Price kr.</p>
+</div>
+
+<form method="post">
+    <button type="submit" style="background-color: red; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px;">
+        Ja, slet produktet
+    </button>
+    <a asp-page="./ProductIndex" style="margin-left: 15px;">Fortryd</a>
+</form>

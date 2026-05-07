@@ -29,6 +29,7 @@
                     <img src="@item.ImageUrl" alt="@item.Name" style="max-width: 100px; max-height: 100px;" />
                 </td>
                 <td>
+                    <a asp-page="./ProductDelete" asp-route-id="@item.Id" style="color: red;">Slet</a>
                     <a asp-page="./ProductEdit" asp-route-id="@item.Id">Rediger</a>
                 </td>
             </tr>
