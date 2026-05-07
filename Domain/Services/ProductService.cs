@@ -21,12 +21,9 @@ namespace Domain.Services
         {
             _persist.Add(newProduct);
         }
-        public void Edit(Guid id, string newName, decimal newPrice)
+        public void Update(Product updatedProduct)
         {
-            // Bemærk: newName og newPrice bruges ikke her – de bør sættes på product-objektet inden Update kaldes
-            var product = _persist.GetById(id)
-                ?? throw new ArgumentException("Product not found", nameof(id));
-            _persist.Update(product);
+            _persist.Update(updatedProduct);
         }
         public void Delete(Guid id)
         {
