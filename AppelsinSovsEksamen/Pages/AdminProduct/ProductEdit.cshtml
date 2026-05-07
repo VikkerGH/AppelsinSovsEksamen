@@ -1,4 +1,37 @@
-﻿@page
+﻿@page "{id:guid}"
 @model AppelsinSovsEksamen.Pages.AdminProduct.ProductEditModel
-@{
-}
+
+<h1>Rediger Merchandise</h1>
+
+<form method="post">
+    <input type="hidden" asp-for="ProductToEdit.Id" />
+
+    <p>
+        <label>Navn på produkt:</label><br />
+        <input asp-for="ProductToEdit.Name" />
+    </p>
+
+    <p>
+        <label>Pris (kr.):</label><br />
+        <input asp-for="ProductToEdit.Price" type="number" step="0.01" />
+    </p>
+
+    <p>
+        <label>Billede-URL:</label><br />
+        <input asp-for="ProductToEdit.ImageUrl" />
+    </p>
+
+    <p>
+        <label>Vælg Kategori:</label><br />
+        <select asp-for="ProductToEdit.KategoriId" required>
+            <option value="">-- Vælg en kategori --</option>
+            @foreach (var kat in Model.Kategorier)
+            {
+                <option value="@kat.Id">@kat.Name</option>
+            }
+        </select>
+    </p>
+
+    <button type="submit">Gem ændringer</button>
+    <a asp-page="./ProductIndex" style="margin-left: 10px;">Annuller</a>
+</form>
