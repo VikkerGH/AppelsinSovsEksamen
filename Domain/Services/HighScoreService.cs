@@ -20,30 +20,51 @@ namespace Domain.Services
 
         public void AddHighScore(HighScore newScore)
         {
-            // Hent eksisterende highscores for dette spil
-            var existing = _persist.GetAll()
+            var allForGame = _persist.GetAll()
                 .Where(hs => hs.GameId == newScore.GameId)
+                .ToList();
+
+            // Global top 5
+            var globalScores = allForGame
                 .OrderByDescending(hs => hs.Score)
                 .ToList();
 
-            // Hvis der er mindre end 5, tilføj altid
-            if (existing.Count < 5)
+            if (globalScores.Count < 5)
             {
                 _persist.Add(newScore);
-                return;
             }
-
-            // Hvis der er 5 eller flere, tjek om den nye score er bedre end den dårligste
-            var worstScore = existing[existing.Count - 1].Score;
-
-            if (newScore.Score > worstScore)
+            else
             {
-                // Den nye score kvalificerer - slet den dårligste og tilføj den nye
-                var worstEntry = existing[existing.Count - 1];
-                _persist.Delete(worstEntry.Id);
-                _persist.Add(newScore);
+                var worstGlobal = globalScores.Last();
+                if (newScore.Score > worstGlobal.Score)
+                {
+                    _persist.Delete(worstGlobal.Id);
+                    _persist.Add(newScore);
+                }
             }
-            // Hvis newScore <= worstScore, gør ingenting (kvalificerer ikke til top 5)
+
+            // Personlig top 3 — kun for loggede brugere
+            if (newScore.UserId.HasValue)
+            {
+                var userScores = allForGame
+                    .Where(hs => hs.UserId == newScore.UserId)
+                    .OrderByDescending(hs => hs.Score)
+                    .ToList();
+
+                if (userScores.Count < 3)
+                {
+                    _persist.Add(newScore);
+                }
+                else
+                {
+                    var worstUserScore = userScores.Last();
+                    if (newScore.Score > worstUserScore.Score)
+                    {
+                        _persist.Delete(worstUserScore.Id);
+                        _persist.Add(newScore);
+                    }
+                }
+            }
         }
 
         public void Delete(Guid id)
