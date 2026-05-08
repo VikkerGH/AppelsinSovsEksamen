@@ -119,6 +119,52 @@
     </div>
 </div>
 
+<div style="max-width: 800px; margin: 40px auto 50px auto; background: #1e1e1e; padding: 30px; border-radius: 15px; border: 1px solid #444; color: white;">
+    <h2 style="color: #ff8c00; margin-bottom: 20px;">Anmeldelser af spillet 🍊</h2>
+
+    <div style="margin-bottom: 30px;">
+        @if (Model.Reviews != null && Model.Reviews.Any())
+        {
+            foreach (var review in Model.Reviews)
+            {
+                <div style="background: #2a2a2a; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ff8c00;">
+                    <p style="margin: 0 0 10px 0; font-size: 1.1em; font-style: italic;">"@review.Text"</p>
+                    <small style="color: #888;">
+                        Skrevet d. @review.CreatedAt.ToString("dd. MMMM yyyy HH:mm")
+                    </small>
+                </div>
+            }
+        }
+        else
+        {
+            <p style="color: #aaa;">Der er ingen anmeldelser endnu</p>
+        }
+    </div>
+
+    <hr style="border-color: #444; margin-bottom: 20px;" />
+
+    <div>
+        @if (Model.IsLoggedIn)
+        {
+            <h3 style="margin-bottom: 15px;">Skriv din egen anmeldelse</h3>
+            <form method="post" asp-page-handler="SubmitReview">
+                <div style="margin-bottom: 15px;">
+                    <textarea name="NewReviewText" asp-for="NewReviewText" rows="4" style="width: 100%; box-sizing: border-box; padding: 15px; border-radius: 5px; background: #333; color: white; border: 1px solid #555;" placeholder="Hvad synes du om spillet?"></textarea>
+                </div>
+                <button type="submit" style="background: #ff8c00; color: #1a1a1a; padding: 10px 20px; border: none; font-weight: bold; border-radius: 5px; cursor: pointer;">
+                    Send anmeldelse
+                </button>
+            </form>
+        }
+        else
+        {
+            <div style="padding: 15px; background-color: #332b1a; border: 1px solid #ff8c00; border-radius: 5px; text-align: center;">
+                <p style="margin: 0;">Du skal være logget ind for at skrive en anmeldelse <br /><br /> <a href="/UserSides/UserLogIn" style="color: #ff8c00; font-weight: bold; text-decoration: none;">Log ind her</a></p>
+            </div>
+        }
+    </div>
+</div>
+
 <style>
     .appelsin-hop-page {
         max-width: 1450px;

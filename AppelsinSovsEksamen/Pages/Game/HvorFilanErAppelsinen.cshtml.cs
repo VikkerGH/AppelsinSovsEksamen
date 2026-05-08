@@ -8,30 +8,35 @@ namespace AppelsinSovsEksamen.Pages.Game
     public class HvorFilanErAppelsinenModel : PageModel
     {
         private readonly HighScoreService _highScoreService;
+        private readonly ReviewService _reviewService;
 
-        // Censor-forsvar: "Vi hardkoder ID'et for performance og simpelhed, da dette er et permanent spil på siden."
+        // Hardkodet ID matcher seed-data i AppDbContext. Skal ikke ændres medmindre databasen nulstilles
         public static readonly Guid HvorFilanErAppelsinenGameId =
-            Guid.Parse("b2c3d4e5-f6a7-4890-b123-456789abcdef"); // Husk at dette er DIT rigtige database ID!
+            Guid.Parse("b2c3d4e5-f6a7-4890-b123-456789abcdef");
 
-        // RYDDET OP: Fjernet ubrugt GameService!
-        public HvorFilanErAppelsinenModel(HighScoreService highScoreService)
+        public HvorFilanErAppelsinenModel(HighScoreService highScoreService, ReviewService reviewService)
         {
             _highScoreService = highScoreService;
+            _reviewService = reviewService;
         }
 
         [BindProperty] public string PlayerName { get; set; } = string.Empty;
         [BindProperty] public int Score { get; set; }
+        [BindProperty] public string NewReviewText { get; set; } = string.Empty;
+        public List<Review> Reviews { get; set; } = new();
 
         public int TopScore { get; set; }
         public List<Domain.Models.HighScore> TopHighscores { get; set; } = new();
         public bool IsLoggedIn { get; set; }
         public string SessionUserName { get; set; } = string.Empty;
 
+
         public void OnGet()
         {
             SessionUserName = HttpContext.Session.GetString("UserName") ?? string.Empty;
             IsLoggedIn = !string.IsNullOrEmpty(SessionUserName);
             LoadHighscores();
+            LoadReviews();
         }
 
         public IActionResult OnPost()
@@ -66,7 +71,6 @@ namespace AppelsinSovsEksamen.Pages.Game
 
                 _highScoreService.AddHighScore(hs);
 
-                // Perfekt brug af PRG-pattern!
                 return RedirectToPage("/Game/HvorFilanErAppelsinen");
             }
             catch (Exception ex)
@@ -87,5 +91,46 @@ namespace AppelsinSovsEksamen.Pages.Game
             TopScore = allScores.Any() ? allScores.First().Score : 0;
             TopHighscores = allScores.Take(5).ToList();
         }
+
+        private void LoadReviews()
+        {
+            Reviews = _reviewService.GetAll()
+                .Where(r => r.GameId == HvorFilanErAppelsinenGameId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList();
+        }
+
+        public IActionResult OnPostSubmitReview()
+        {
+            var sessionUserId = HttpContext.Session.GetString("UserId");
+
+            if (string.IsNullOrEmpty(sessionUserId))
+            {
+                return RedirectToPage("/UserSides/UserLogIn");
+            }
+
+            if (string.IsNullOrWhiteSpace(NewReviewText))
+            {
+                SessionUserName = HttpContext.Session.GetString("UserName") ?? string.Empty;
+                IsLoggedIn = !string.IsNullOrEmpty(SessionUserName);
+
+                LoadHighscores();
+                LoadReviews();
+                return Page();
+            }
+
+            var nyAnmeldelse = new Review
+            {
+                Text = NewReviewText,
+                GameId = HvorFilanErAppelsinenGameId,
+                UserId = Guid.Parse(sessionUserId)
+            };
+
+            _reviewService.Create(nyAnmeldelse);
+
+            return RedirectToPage("/Game/HvorFilanErAppelsinen");
+        }
     }
+
+
 }

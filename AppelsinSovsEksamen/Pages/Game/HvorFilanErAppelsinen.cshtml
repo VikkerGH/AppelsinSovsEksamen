@@ -4,7 +4,6 @@
     ViewData["Title"] = "Hvor filan er Appelsinen";
 }
 
-<!-- TILFØJET: Lidt CSS så din popup ser pæn ud og lægger sig over spillet -->
 <style>
     .highscore-popup-overlay {
         position: fixed;
@@ -43,6 +42,14 @@
             background: #e67e00;
         }
 
+    .btn-submit, .btn-submit-review {
+        background: #ff8c00;
+    }
+
+        .btn-submit:hover, .btn-submit-review:hover {
+            background: #e67e00;
+        }
+
     .btn-start {
         background: #444;
         color: white;
@@ -61,22 +68,24 @@
 <link rel="shortcut icon" href="/unitygame/TemplateData/favicon.ico">
 <link rel="stylesheet" href="/unitygame/TemplateData/style.css">
 
-<div id="unity-container" class="unity-desktop" style="margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+<div style="width: 960px; height: 600px; margin: 40px auto; position: relative;">
 
-    <canvas id="unity-canvas" width=960 height=540 tabindex="-1"></canvas>
-
-    <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-            <div id="unity-progress-bar-full"></div>
+    <div id="unity-container" class="unity-desktop">
+        <canvas id="unity-canvas" width=960 height=540 tabindex="-1"></canvas>
+        <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+        <div id="unity-warning"> </div>
+        <div id="unity-footer" style="width: 960px;">
+            <div id="unity-logo-title-footer"></div>
+            <div id="unity-fullscreen-button"></div>
+            <div id="unity-build-title">Hvor filan er Appelsinen</div>
         </div>
     </div>
-    <div id="unity-warning"> </div>
-    <div id="unity-footer" style="width: 960px;">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Hvor filan er Appelsinen</div>
-    </div>
+
 </div>
 
 <script>
@@ -170,14 +179,15 @@
         if (nameInput) { nameInput.focus(); }
     };
 
-    // ATOMBOMBEN: Fanger tasterne FØR Unity gør det, hvis du står i skrivefeltet
+
     ['keydown', 'keyup', 'keypress'].forEach(function(eventName) {
         window.addEventListener(eventName, function(e) {
-            // Tjekker om du aktivt står og klikker inde i navnefeltet
-            if (document.activeElement && document.activeElement.id === "player-name") {
-                e.stopImmediatePropagation(); // Dræber eventet, så Unity ikke stjæler det!
+            var activeEl = document.activeElement;
+
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA")) {
+                    e.stopImmediatePropagation(); // Stopper Unity i at stjæle tastaturet
             }
-        }, true); // 'true' betyder at vi aflytter det allertidligst muligt
+        }, true);
     });
 </script>
 
@@ -207,7 +217,7 @@
                            style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; color: black; background: white;" />
                 </div>
                 <p style="font-size:0.85rem; color:#888; margin-top:0.5rem;">
-                    <!-- MAGIEN HER: target="_blank" åbner i en ny fane, så spillet ikke nulstiller! -->
+
                     <a href="/UserSides/UserLogIn" target="_blank" style="color:#ff8c00;">Husk at Log ind</a>
                     for at gemme din fremtidige score på din profil.
                 </p>
@@ -217,5 +227,86 @@
         </form>
 
         <button class="btn-start" id="btn-close-popup" style="margin-top:1rem;" onclick="location.reload();">Prøv igen</button>
+    </div>
+</div>
+
+
+<div style="max-width: 800px; margin: 40px auto 20px auto; text-align: center; background: #2a2a2a; padding: 20px; border-radius: 15px; border: 2px solid #ff8c00; color: white;">
+    <h2 style="color: #ff8c00;">🏆 Top 5 Highscores</h2>
+    <ul style="list-style: none; padding: 0; margin-top: 20px;">
+        @if (Model.TopHighscores != null && Model.TopHighscores.Any())
+        {
+            var rank = 1;
+            foreach (var hs in Model.TopHighscores)
+            {
+                <li style="padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; font-size: 1.2em;">
+                    <span>
+                        @if (rank == 1)
+                        {
+                            <span>🥇</span>
+                        }
+                        @if (rank == 2)
+                        {
+                            <span>🥈</span>
+                        }
+                        @if (rank == 3)
+                        {
+                            <span>🥉</span>
+                        }
+                        <strong>#@rank</strong> @hs.PlayerName
+                    </span>
+                    <span style="color: #ff8c00; font-weight: bold;">@hs.Score point</span>
+                </li>
+                rank++;
+            }
+        }
+        else
+        {
+            <li style="padding: 10px; color: #aaa;">Ingen highscores endnu. Gennemfør spillet for at blive den første!</li>
+        }
+    </ul>
+</div>
+
+<div style="max-width: 800px; margin: 0 auto 50px auto; background: #1e1e1e; padding: 30px; border-radius: 15px; border: 1px solid #444; color: white;">
+    <h2 style="color: #ff8c00; margin-bottom: 20px;">Anmeldelser af spillet 🍊</h2>
+
+    <div style="margin-bottom: 30px;">
+        @if (Model.Reviews != null && Model.Reviews.Any())
+        {
+            foreach (var review in Model.Reviews)
+            {
+                <div style="background: #2a2a2a; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid #ff8c00;">
+                    <p style="margin: 0 0 10px 0; font-size: 1.1em; font-style: italic;">"@review.Text"</p>
+                    <small style="color: #888;">
+                        Skrevet d. @review.CreatedAt.ToString("dd. MMMM yyyy HH:mm")
+                    </small>
+                </div>
+            }
+        }
+        else
+        {
+            <p style="color: #aaa;">Der er ingen anmeldelser endnu</p>
+        }
+    </div>
+
+    <hr style="border-color: #444; margin-bottom: 20px;" />
+
+    <div>
+        @if (Model.IsLoggedIn)
+        {
+            <h3 style="margin-bottom: 15px;">Skriv din egen anmeldelse</h3>
+            <form method="post" asp-page-handler="SubmitReview">
+                <div style="margin-bottom: 15px;">
+                    <textarea asp-for="NewReviewText" rows="4" style="width: 100%; box-sizing: border-box; padding: 15px; border-radius: 5px; background: #333; color: white; border: 1px solid #555;" placeholder="Hvad synes du om spillet?"></textarea>
+                </div>
+                <button type="submit" class="btn-submit-review">Send anmeldelse</button>
+            </form>
+        }
+        else
+        {
+            <div style="padding: 15px; background-color: #332b1a; border: 1px solid #ff8c00; border-radius: 5px; text-align: center;">
+                <p style="margin: 0;">Du skal være logget ind for at skrive en anmeldelse. <br /><br /> <a href="/UserSides/UserLogIn" style="color: #ff8c00; font-weight: bold; text-decoration: none;">Log ind her</a></p>
+            </div>
+        }
     </div>
 </div>
