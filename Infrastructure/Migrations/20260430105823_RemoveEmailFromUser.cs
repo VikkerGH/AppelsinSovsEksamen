@@ -11,9 +11,6 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Users");
 
             migrationBuilder.InsertData(
                 table: "Users",
@@ -29,12 +26,6 @@ namespace Infrastructure.Migrations
                 keyColumn: "Id",
                 keyValue: new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
 
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Users",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
         }
     }
 }

@@ -29,6 +29,7 @@ builder.Services.AddScoped<Domain.Services.ProductService>();
 builder.Services.AddScoped<HighScoreService>();
 builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<Domain.Services.UserService>();
+builder.Services.AddScoped<Domain.Services.ReviewService>();
 
 var app = builder.Build();
 

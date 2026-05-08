@@ -12,6 +12,7 @@ namespace Infrastructure.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<HighScore> HighScores => Set<HighScore>();
         public DbSet<Kategori> Kategorier => Set<Kategori>();
+        public DbSet<Review> Reviews => Set<Review>();
 
         // Seed data for spil
         protected override void OnModelCreating(ModelBuilder modelBuilder)
