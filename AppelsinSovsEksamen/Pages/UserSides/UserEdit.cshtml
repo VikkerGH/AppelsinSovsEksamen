@@ -1,10 +1,8 @@
-﻿@page
+﻿
+@page
 @model AppelsinSovsEksamen.Pages.User.UserEditModel
 @{
     ViewData["Title"] = "Min profil";
-
-    <p style="color:white;">Session UserId: @HttpContext.Session.GetString("UserId")</p>
-
 }
 
 <div class="row justify-content-center mt-4">
@@ -14,14 +12,35 @@
             <div class="card border-0 shadow" style="background-color: #2a2a2a; color: #f0f0f0;">
                 <div class="card-body p-4">
                     <h2 class="fw-bold mb-4" style="color: #ff8c00;">Min profil</h2>
+
                     <dl class="row mb-4">
                         <dt class="col-sm-4" style="color: #aaa;">Brugernavn</dt>
                         <dd class="col-sm-8">@Model.CurrentUser.Name</dd>
+
                         <dt class="col-sm-4" style="color: #aaa;">Oprettet</dt>
-                        <dd class="col-sm-8">@Model.CurrentUser.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</dd>
+                        <dd class="col-sm-8">
+                            @Model.CurrentUser.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")
+                        </dd>
                     </dl>
-                    <hr style="border-color: #444;" />
-                    <a asp-page="/UserSides/UserDelete"   
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    <!-- Knap til popup -->
+                    <button type="button"
+                            class="btn w-100 fw-bold mb-3"
+                            style="background-color: #ff8c00; color: white;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editProfileModal">
+                        Ændr profil
+                    </button>
+
+                    <!-- Slet konto -->
+                    <a asp-page="/UserSides/UserDelete"
                        asp-route-id="@Model.CurrentUser.Id"
                        class="btn w-100 fw-bold mt-3"
                        style="background-color: #cc0000; color: white;">
@@ -33,8 +52,77 @@
         else
         {
             <div class="alert alert-warning">
-                Du er ikke logget ind. <a href="/UserSides/UserLogIn" style="color: #ff8c00;">Log ind her</a>
+                Du er ikke logget ind.
             </div>
         }
     </div>
 </div>
+
+<!-- Modal Popup -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: #2a2a2a; color: white;">
+
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" style="color: #ff8c00;">
+                    Rediger profil
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <form method="post">
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            Nyt Brugernavn
+                        </label>
+
+                        <input asp-for="Name"
+                               class="form-control"
+                               style="background-color: #3a3a3a; color: white; border-color: #555;" />
+
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">
+                            Nyt kodeord
+                        </label>
+
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-control"
+                               placeholder="Lad feltet være tomt for at beholde nuværende kodeord"
+                               style="background-color: #3a3a3a; color: white; border-color: #555;" />
+
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-secondary">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Luk
+                    </button>
+
+                    <button type="submit"
+                            class="btn fw-bold"
+                            style="background-color: #ff8c00; color: white;">
+                        Gem ændringer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
