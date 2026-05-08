@@ -1,6 +1,8 @@
 ﻿
 @page
 @model AppelsinSovsEksamen.Pages.User.UserEditModel
+@using Domain.Models
+
 @{
     ViewData["Title"] = "Min profil";
 }
@@ -46,6 +48,33 @@
                        style="background-color: #cc0000; color: white;">
                         Slet min konto
                     </a>
+                    <!-- Personlige topscorer -->
+                    @if (Model.TopScoresByGame.Any())
+                    {
+                        <div class="mt-4">
+                            <h5 class="fw-bold mb-3" style="color: #ff8c00;">Mine top 3 scores</h5>
+
+                            @foreach (var game in Model.TopScoresByGame)
+                            {
+                                <div class="mb-3">
+                                    <h6 style="color: #aaa;">@game.Key</h6>
+                                    <ol class="ps-3">
+                                        @foreach (var score in game.Value)
+                                        {
+                                            <li style="color: #f0f0f0;">
+                                                @score.Score point
+                                                <small style="color: #888;">— @score.Datetime.ToLocalTime().ToString("dd-MM-yyyy")</small>
+                                            </li>
+                                        }
+                                    </ol>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="mt-4" style="color: #aaa;">Du har ingen scores endnu.</p>
+                    }
                 </div>
             </div>
         }
