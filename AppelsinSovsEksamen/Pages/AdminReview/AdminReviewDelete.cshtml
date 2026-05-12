@@ -1,0 +1,43 @@
+﻿@page
+@model AppelsinSovsEksamen.Pages.AdminReview.ReviewIndexModel
+@{
+    ViewData["Title"] = "Administrer anmeldelser";
+}
+
+<h1>Administrer anmeldelser</h1>
+
+<br />
+
+@if (!Model.Reviews.Any())
+{
+    <p>Der er ingen anmeldelser endnu.</p>
+}
+else
+{
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>Anmeldelse</th>
+                <th>Dato</th>
+                <th>Slet</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var review in Model.Reviews)
+            {
+                <tr>
+                    <td>@review.Text</td>
+                    <td>@review.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Slet"
+                              onsubmit="return confirm('Er du sikker på at du vil slette denne anmeldelse?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="SletId" value="@review.Id" />
+                            <button type="submit">Slet</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
