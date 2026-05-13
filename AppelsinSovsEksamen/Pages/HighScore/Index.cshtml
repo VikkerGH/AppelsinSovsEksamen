@@ -1,34 +1,58 @@
 ﻿@page
 @model AppelsinSovsEksamen.Pages.HighScore.IndexModel
 @{
-    ViewData["Title"] = "Highscore";
+    ViewData["Title"] = "Rangliste";
 }
 
-<h2 class="mb-4" style="color: #ff8c00;">🏆 Highscore Liste</h2>
-<p class="text-muted mb-4">Top 5 scores per spil. Spil spillene for at tilføje din score!</p>
+<div style="max-width:900px; margin:2rem auto; padding:0 1rem;">
 
-<table class="table table-dark table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Spiller</th>
-            <th>Score</th>
-            <th>Spil</th>
-            <th>Dato</th>
-        </tr>
-    </thead>
-    <tbody>
-        @{ int rank = 1; }
-        @foreach (var hs in Model.HighScores)
-        {
-            <tr>
-                <td>@rank++</td>
-                <td>@(!string.IsNullOrEmpty(hs.PlayerName) ? hs.PlayerName : "Anonym")</td>
-                <td><strong>@hs.Score</strong></td>
-                <td>@(Model.Games.FirstOrDefault(g => g.Id == hs.GameId)?.Name ?? "Ukendt")</td>
-                <td>@hs.Datetime.ToString("dd/MM/yyyy HH:mm")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <h1 style="color:#ff8c00; font-weight:900;">🏆 Rangliste</h1>
+
+    @if (!Model.ScorePerSpil.Any())
+    {
+        <p style="color:#aaa;">Ingen scores endnu.</p>
+    }
+
+    @foreach (var spil in Model.ScorePerSpil)
+    {
+        <div style="background:#2a2a2a; border:1px solid #444;
+                        border-radius:12px; padding:1.5rem; margin-bottom:1.5rem;">
+
+            <h3 style="color:#ff8c00;">🎮 @spil.Key</h3>
+
+            @if (!spil.Value.Any())
+            {
+                <p style="color:#666;">Ingen scores for dette spil endnu.</p>
+            }
+            else
+            {
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #444;">
+                            <th style="padding:10px; color:#aaa; text-align:left;">#</th>
+                            <th style="padding:10px; color:#aaa; text-align:left;">Spiller</th>
+                            <th style="padding:10px; color:#aaa; text-align:left;">Score</th>
+                            <th style="padding:10px; color:#aaa; text-align:left;">Dato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < spil.Value.Count; i++)
+                        {
+                            var hs = spil.Value[i];
+                            var medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : $"{i + 1}.";
+
+                            <tr style="border-bottom:1px solid #333;">
+                                <td style="padding:10px; color:#ddd;">@medal</td>
+                                <td style="padding:10px; color:#ddd;">@hs.PlayerName</td>
+                                <td style="padding:10px; color:#ff8c00; font-weight:700;">@hs.Score</td>
+                                <td style="padding:10px; color:#666;">@hs.Datetime.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
+</div>
 
