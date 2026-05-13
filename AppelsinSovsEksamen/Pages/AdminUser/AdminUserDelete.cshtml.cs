@@ -19,6 +19,9 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
 
         public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             try
             {
                 UserToDelete = _userService.GetById(Id);
@@ -28,6 +31,8 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
             {
                 return NotFound();
             }
+            
+
         }
 
         public IActionResult OnPost()

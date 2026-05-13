@@ -28,6 +28,9 @@ namespace AppelsinSovsEksamen.Pages.AdminProduct
             }
 
             ProductToDelete = product;
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             return Page();
         }
 

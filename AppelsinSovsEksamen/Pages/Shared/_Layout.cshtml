@@ -31,17 +31,9 @@
                             <a class="nav-link text-light" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-page="/AdminUser/UserIndex">Administrer brugere</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-page="/AdminProduct/ProductIndex">Admin-Merch</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-page="/UserProduct/Index">Merch</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-page="/AdminReview/AdminReviewDelete">Admin-Anmeldelser</a>
-                        </li>
+                        
 
                         @if (Context.Session.GetString("UserId") == null)
                         {

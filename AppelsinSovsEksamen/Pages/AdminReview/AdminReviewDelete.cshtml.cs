@@ -19,9 +19,15 @@ namespace AppelsinSovsEksamen.Pages.AdminReview
         [BindProperty]
         public Guid SletId { get; set; }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
+            // ... resten af din eksisterende kode
+           
             Reviews = _reviewService.GetAll();
+            return Page();
         }
 
         public IActionResult OnPostSlet()
