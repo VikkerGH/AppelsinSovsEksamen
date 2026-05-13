@@ -31,7 +31,7 @@ namespace AppelsinSovsEksamen.Pages.User
 
             public IActionResult OnPost()
             {
-                if (!ModelState.IsValid) return Page();
+                if (!ModelState.IsValid) return Page();// 
 
                 // Find brugeren på navn
                 var bruger = _userRepository.GetAll()
