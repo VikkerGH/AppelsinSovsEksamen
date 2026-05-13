@@ -37,6 +37,10 @@ namespace AppelsinSovsEksamen.Pages.AdminProduct
             }
 
             ProductToEdit = product;
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             return Page();
         }
 

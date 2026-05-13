@@ -16,9 +16,13 @@ namespace AppelsinSovsEksamen.Pages.AdminProduct
         }
 
         public IEnumerable<Domain.Models.Product> Products { get; set; } = new List<Domain.Models.Product>();
-        public void OnGet()
+        public IActionResult OnGet()
         {
             Products = _productService.GetAll();
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
+            return Page();
         }
     }
 }

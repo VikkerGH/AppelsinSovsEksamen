@@ -22,9 +22,14 @@ namespace AppelsinSovsEksamen.Pages.AdminProduct
 
         public IEnumerable<Kategori> Kategorier { get; set; } = new List<Kategori>();
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+            
             Kategorier = _kategoriRepo.GetAll();
+
+            return Page();
         }
 
         public IActionResult OnPost()

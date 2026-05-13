@@ -5,62 +5,70 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppelsinSovsEksamen.Pages.User
 {
-        public class LoginModel : PageModel
+    public class LoginModel : PageModel
+    {
+        private readonly IRepository<Domain.Models.User> _userRepository;
+
+        // Indsæt dit admin Guid her fra databasen
+        private static readonly Guid AdminId = Guid.Parse("INDSÆT-ADMIN-GUID-HER");
+
+        public LoginModel(IRepository<Domain.Models.User> userRepository)
         {
-            private readonly IRepository<Domain.Models.User> _userRepository;
+            _userRepository = userRepository;
+        }
 
-            public LoginModel(IRepository<Domain.Models.User> userRepository)
+        [BindProperty]
+        [Required(ErrorMessage = "Brugernavn er påkrævet")]
+        [MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 tegn")]
+        public string InputName { get; set; } = string.Empty;
+
+        [BindProperty]
+        [Required(ErrorMessage = "Adgangskode er påkrævet")]
+        public string InputPassword { get; set; } = string.Empty;
+
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        public void OnGet() { }
+
+        public IActionResult OnPost()
+        {
+            if (!ModelState.IsValid) return Page();
+
+            var bruger = _userRepository.GetAll()
+                .FirstOrDefault(u => u.Name.ToLower() == InputName.ToLower());
+
+            if (bruger == null)
             {
-                _userRepository = userRepository;
+                ErrorMessage = "Forkert brugernavn eller adgangskode.";
+                return Page();
             }
-            [BindProperty]
-            [Required(ErrorMessage = "Brugernavn er påkrævet")]
-            [MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 tegn")]
-            public string InputName { get; set; } = string.Empty;
 
-            [BindProperty]
-            [Required(ErrorMessage = "Adgangskode er påkrævet")]
-            public string InputPassword { get; set; } = string.Empty;
+            var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Domain.Models.User>();
+            var result = hasher.VerifyHashedPassword(bruger, bruger.Password, InputPassword);
 
-            public string ErrorMessage { get; set; } = string.Empty;
-
-            public void OnGet()
+            if (result == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
             {
-            
+                ErrorMessage = "Forkert brugernavn eller adgangskode.";
+                return Page();
             }
 
-            public IActionResult OnPost()
-            {
-                if (!ModelState.IsValid) return Page();
+            // Gem session
+            HttpContext.Session.SetString("UserId", bruger.Id.ToString());
+            HttpContext.Session.SetString("UserName", bruger.Name);
 
-                // Find brugeren på navn
-                var bruger = _userRepository.GetAll()
-                    .FirstOrDefault(u => u.Name.ToLower() == InputName.ToLower());
+            // Tjek om brugeren er admin ud fra Id
+            bool isAdmin = bruger.Id == AdminId;
+            HttpContext.Session.SetString("IsAdmin", isAdmin.ToString().ToLower());
 
-                if (bruger == null)
-                {
-                    ErrorMessage = "Forkert brugernavn eller adgangskode.";
-                    return Page();
-                }
+            Response.Cookies.Append(".AppelsinSovs.Session",
+                Request.Cookies[".AppelsinSovs.Session"] ?? "",
+                new CookieOptions { Expires = null });
 
-                // Verificer password med PasswordHasher
-                var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Domain.Models.User>();
-                var result = hasher.VerifyHashedPassword(bruger, bruger.Password, InputPassword);
-
-                if (result == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
-                {
-                    ErrorMessage = "Forkert brugernavn eller adgangskode.";
-                    return Page();
-                }
-
-                // Login godkendt — gem i session
-                HttpContext.Session.SetString("UserId", bruger.Id.ToString());
-                HttpContext.Session.SetString("UserName", bruger.Name);
-                Response.Cookies.Append(".AppelsinSovs.Session",
-                    Request.Cookies[".AppelsinSovs.Session"] ?? "",
-                    new CookieOptions { Expires = null }); // null = lukkes ved browser-luk
+            // Send admin til admin-panel, normale brugere til forsiden
+            if (isAdmin)
+                return RedirectToPage("/AdminIndex");
 
             return RedirectToPage("/Index");
-            }
         }
+    }
 }
