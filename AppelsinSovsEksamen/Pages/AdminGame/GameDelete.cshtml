@@ -1,4 +1,18 @@
-﻿@page
-@model AppelsinSovsEksamen.Pages.AdminGame.AdminGameDeleteModel
+﻿@page "{id:Guid?}"
+@model AppelsinSovsEksamen.Pages.AdminGame.GameDeleteModel
 @{
+    ViewData["Title"] = "Slet spil";
 }
+
+<div class="container mt-4" style="color: #f0f0f0; max-width: 600px;">
+    <div class="card bg-danger text-white p-4">
+        <h3>Er du sikker på at du vil slette dette spil?</h3>
+        <p class="mt-3">Spillet vil blive slettet permanent. Dette kan ikke fortrydes.</p>
+
+        <form method="post" class="mt-4">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-light text-danger fw-bold">Ja, slet spillet</button>
+            <a asp-page="./GameIndex" class="btn btn-outline-light ms-2">Nej, gå tilbage</a>
+        </form>
+    </div>
+</div>

@@ -1,4 +1,26 @@
-﻿@page
-@model AppelsinSovsEksamen.Pages.AdminGame.AdminGameEditModel
+﻿@page "{id:Guid?}"
+@model AppelsinSovsEksamen.Pages.AdminGame.GameEditModel
 @{
+    ViewData["Title"] = "Rediger spil";
 }
+
+<div class="container mt-4" style="color: #f0f0f0; max-width: 600px;">
+    <h2>Rediger spil</h2>
+
+    <form method="post" class="mt-4">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Spilnavn</label>
+            <input asp-for="GameToEdit.Name" class="form-control" style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;" />
+            <span asp-validation-for="GameToEdit.Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Beskrivelse</label>
+            <textarea asp-for="GameToEdit.Description" class="form-control" rows="4" style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;"></textarea>
+        </div>
+
+        <button type="submit" class="btn" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Opdater spil</button>
+        <a asp-page="./GameIndex" class="btn btn-secondary ms-2">Annuller</a>
+    </form>
+</div>
