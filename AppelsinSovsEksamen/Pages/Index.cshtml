@@ -44,9 +44,13 @@
                         {
                             <a asp-page="/Game/AppelsinHop" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Spil nu</a>
                         }
-                        else
+                        else if (game.Name == "Hvor filan er appelsinen?")
                         {
                             <a asp-page="/Game/HvorFilanErAppelsinen" class="btn w-100" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Spil nu</a>
+                        }
+                        else
+                        {
+                            <button class="btn w-100 btn-secondary" style="font-weight: bold; background-color: #555; color: #ccc; border: none;" disabled>Kommer snart</button>
                         }
                     </div>
                 </div>
