@@ -16,14 +16,23 @@ namespace AppelsinSovsEksamen.Pages.HighScore
             _gameService = gameService;
         }
 
-        public IEnumerable<Domain.Models.HighScore> HighScores { get; set; } = [];
-        public IEnumerable<Domain.Models.Game> Games { get; set; } = [];
+        public Dictionary<string, List<Domain.Models.HighScore>> ScorePerSpil { get; set; } = new();
 
         public void OnGet()
         {
-            // Scores sorteres på tværs af alle spil – Razor-siden grupperer dem selv pr. spil
-            HighScores = _highScoreService.GetAll().OrderByDescending(h => h.Score);
-            Games = _gameService.GetAll();
+            var alleSpil = _gameService.GetAll(); // Hent alle spil først, så vi kan matche scores til spilnavne
+            var alleScores = _highScoreService.GetAll();// Hent alle scores
+
+            foreach (var spil in alleSpil) // Gå igennem hvert spil
+            {
+                List<Domain.Models.HighScore> scoresForSpil = alleScores
+                    .Where(h => h.GameId == spil.Id)// Filtrer scores for det aktuelle spil
+                    .OrderByDescending(h => h.Score)// Sorter scores i faldende rækkefølge
+                    .Take(5)// Tag de top 5 scores
+                    .ToList();// Konverter til liste
+
+                ScorePerSpil[spil.Name] = scoresForSpil;// Gem scores i dictionary med spilnavn som nøgle
+            }
         }
     }
 }
