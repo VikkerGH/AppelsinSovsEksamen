@@ -8,9 +8,9 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
 {
     public class CreateAdminModel : PageModel
     {
-        private readonly IRepository<Domain.Models.User> _userRepository;
+        private readonly UserService _userRepository;
 
-        public CreateAdminModel(IRepository<Domain.Models.User> userRepository)
+        public CreateAdminModel(UserService userRepository)
         {
             _userRepository = userRepository;
         }
@@ -57,8 +57,7 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
                 return Page();
             }
 
-            var userService = new UserService(_userRepository);
-            var nyBruger = userService.CreateAdmin(InputName, InputPassword, IsAdmin);
+            var nyBruger = _userRepository.CreateAdmin(InputName, InputPassword, IsAdmin);
 
             HttpContext.Session.SetString("UserId", nyBruger.Id.ToString());
             HttpContext.Session.SetString("UserName", nyBruger.Name);
