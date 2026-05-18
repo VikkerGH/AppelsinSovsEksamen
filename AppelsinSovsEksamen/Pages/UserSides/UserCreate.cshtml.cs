@@ -8,9 +8,9 @@ namespace AppelsinSovsEksamen.Pages.User
 {
     public class CreateUserModel : PageModel
     {
-        private readonly IRepository<Domain.Models.User> _userRepository;
+        private readonly UserService _userRepository;
 
-        public CreateUserModel(IRepository<Domain.Models.User> userRepository)
+        public CreateUserModel(UserService userRepository)
         {
             _userRepository = userRepository;
         }
@@ -48,8 +48,7 @@ namespace AppelsinSovsEksamen.Pages.User
                 return Page();
             }
 
-            var userService = new UserService(_userRepository);
-            var nyBruger = userService.Create(InputName, InputPassword);
+            var nyBruger = _userRepository.Create(InputName, InputPassword);
 
             HttpContext.Session.SetString("UserId", nyBruger.Id.ToString());
             HttpContext.Session.SetString("UserName", nyBruger.Name);

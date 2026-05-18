@@ -1,3 +1,4 @@
+using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -5,9 +6,9 @@ namespace AppelsinSovsEksamen.Pages.User
 {
     public class UserDeleteModel : PageModel
     {
-        private readonly Domain.Services.UserService _userService;
+        private readonly UserService _userService;
 
-        public UserDeleteModel(Domain.Services.UserService userService)
+        public UserDeleteModel(UserService userService)
         {
             _userService = userService;
         }

@@ -1,4 +1,5 @@
 using Domain.Persistence;
+using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -6,8 +7,8 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
 {
     public class AdminIndexModel : PageModel
     {
-        private readonly IRepository<Domain.Models.User> _userRepo;
-        private readonly IRepository<Domain.Models.Product> _productRepo;
+        private readonly UserService _userRepo;
+        private readonly ProductService _productRepo;
 
         public int UserCount { get; set; }
         public int ProductCount { get; set; }
@@ -16,8 +17,8 @@ namespace AppelsinSovsEksamen.Pages.AdminUser
 
 
         public AdminIndexModel(
-            IRepository<Domain.Models.User> userRepo,
-            IRepository<Domain.Models.Product> productRepo)
+            UserService userRepo,
+            ProductService productRepo)
         {
             _userRepo = userRepo;
             _productRepo = productRepo;

@@ -1,4 +1,5 @@
 using Domain.Persistence;
+using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
@@ -7,9 +8,9 @@ namespace AppelsinSovsEksamen.Pages.User
 {
     public class LoginModel : PageModel
     {
-        private readonly IRepository<Domain.Models.User> _userRepository;
+        private readonly UserService _userRepository;
 
-        public LoginModel(IRepository<Domain.Models.User> userRepository)
+        public LoginModel(UserService userRepository)
         {
             _userRepository = userRepository;
         }

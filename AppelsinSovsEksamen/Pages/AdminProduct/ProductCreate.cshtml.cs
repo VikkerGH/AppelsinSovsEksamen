@@ -9,16 +9,16 @@ namespace AppelsinSovsEksamen.Pages.AdminProduct
     public class ProductCreateModel : PageModel
     {
         private readonly ProductService _productService;
-        private readonly IRepository<Domain.Models.Kategori> _kategoriRepo;
+        private readonly IRepository<Kategori> _kategoriRepo;
 
-        public ProductCreateModel (ProductService productService, IRepository<Domain.Models.Kategori> kategoriRepo)
+        public ProductCreateModel (ProductService productService, IRepository<Kategori> kategoriRepo)
         {
             _productService = productService;
             _kategoriRepo = kategoriRepo;
         }
 
         [BindProperty]
-        public Domain.Models.Product NewProduct { get; set; } = new Domain.Models.Product();
+        public Product NewProduct { get; set; } = new Product();
 
         public IEnumerable<Kategori> Kategorier { get; set; } = new List<Kategori>();
 

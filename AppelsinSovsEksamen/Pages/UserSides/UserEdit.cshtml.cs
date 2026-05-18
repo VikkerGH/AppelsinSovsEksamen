@@ -8,7 +8,7 @@ namespace AppelsinSovsEksamen.Pages.User
 {
     public class UserEditModel : PageModel
     {
-        private readonly Domain.Services.UserService _userService;
+        private readonly UserService _userService;
         private readonly HighScoreService _highScoreService;
         private readonly GameService _gameService;
 

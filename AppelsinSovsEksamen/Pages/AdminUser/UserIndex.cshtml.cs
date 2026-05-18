@@ -1,12 +1,13 @@
+using Domain.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace AppelsinSovsEksamen.Pages.AdminUser
 {
     public class UserIndexModel : PageModel
     {
-        private readonly Domain.Services.UserService _userService;
+        private readonly UserService _userService;
 
-        public UserIndexModel(Domain.Services.UserService userService)
+        public UserIndexModel(UserService userService)
         {
             _userService = userService;
         }
