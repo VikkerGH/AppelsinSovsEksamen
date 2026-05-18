@@ -22,6 +22,9 @@ namespace AppelsinSovsEksamen.Pages.AdminGame
 
         public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             try
             {
                 GameToDelete = _gameService.GetById(Id);

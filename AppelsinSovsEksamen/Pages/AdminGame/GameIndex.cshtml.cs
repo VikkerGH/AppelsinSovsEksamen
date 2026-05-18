@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Domain.Models;
 using Domain.Services;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AppelsinSovsEksamen.Pages.AdminGame
 {
@@ -16,9 +17,14 @@ namespace AppelsinSovsEksamen.Pages.AdminGame
 
         public IEnumerable<Domain.Models.Game> Games { get; set; } = new List<Domain.Models.Game>();
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             Games = _gameService.GetAll();
+
+            return Page();
         }
     }
 }

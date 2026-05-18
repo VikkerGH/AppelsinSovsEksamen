@@ -18,6 +18,9 @@ namespace AppelsinSovsEksamen.Pages.AdminGame
 
         public IActionResult OnGet()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+
             return Page();
         }
 
