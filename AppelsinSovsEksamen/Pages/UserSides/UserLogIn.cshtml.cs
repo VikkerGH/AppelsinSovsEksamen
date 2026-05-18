@@ -9,9 +9,6 @@ namespace AppelsinSovsEksamen.Pages.User
     {
         private readonly IRepository<Domain.Models.User> _userRepository;
 
-        // Indsæt dit admin Guid her fra databasen
-        private static readonly Guid AdminId = Guid.Parse("INDSÆT-ADMIN-GUID-HER");
-
         public LoginModel(IRepository<Domain.Models.User> userRepository)
         {
             _userRepository = userRepository;
@@ -52,21 +49,16 @@ namespace AppelsinSovsEksamen.Pages.User
                 return Page();
             }
 
-            // Gem session
             HttpContext.Session.SetString("UserId", bruger.Id.ToString());
             HttpContext.Session.SetString("UserName", bruger.Name);
-
-            // Tjek om brugeren er admin ud fra Id
-            bool isAdmin = bruger.Id == AdminId;
-            HttpContext.Session.SetString("IsAdmin", isAdmin.ToString().ToLower());
+            HttpContext.Session.SetString("IsAdmin", bruger.IsAdmin.ToString().ToLower());
 
             Response.Cookies.Append(".AppelsinSovs.Session",
                 Request.Cookies[".AppelsinSovs.Session"] ?? "",
                 new CookieOptions { Expires = null });
 
-            // Send admin til admin-panel, normale brugere til forsiden
-            if (isAdmin)
-                return RedirectToPage("/AdminIndex");
+            if (bruger.IsAdmin)
+                return RedirectToPage("/AdminUser/AdminIndex");
 
             return RedirectToPage("/Index");
         }

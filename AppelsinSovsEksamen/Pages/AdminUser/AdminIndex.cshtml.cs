@@ -2,7 +2,7 @@ using Domain.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace AppelsinSovsEksamen.Pages
+namespace AppelsinSovsEksamen.Pages.AdminUser
 {
     public class AdminIndexModel : PageModel
     {
@@ -12,6 +12,8 @@ namespace AppelsinSovsEksamen.Pages
         public int UserCount { get; set; }
         public int ProductCount { get; set; }
         public int AnmeldelseCount { get; set; }
+    
+
 
         public AdminIndexModel(
             IRepository<Domain.Models.User> userRepo,
@@ -20,10 +22,15 @@ namespace AppelsinSovsEksamen.Pages
             _userRepo = userRepo;
             _productRepo = productRepo;
         }
+
         public IActionResult OnGet()
         {
             if (HttpContext.Session.GetString("IsAdmin") != "true")
                 return RedirectToPage("/Index");
+
+            UserCount = _userRepo.GetAll().Count();
+            ProductCount = _productRepo.GetAll().Count();
+            AnmeldelseCount = 0;
 
             return Page();
         }

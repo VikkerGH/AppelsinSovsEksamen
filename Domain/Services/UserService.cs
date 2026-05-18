@@ -34,6 +34,15 @@ namespace Domain.Services
             _persist.Add(user);
             return user;
         }
+
+        public User CreateAdmin(string name, string plainPassword, bool isAdmin)
+        {
+            var user = Create(name, plainPassword);
+            user.SetAdmin(isAdmin);
+            _persist.Update(user);
+            return user;
+        }
+
         public void Edit(Guid id, string newName, string newPlainPassword)
         {
             var user = _persist.GetById(id)

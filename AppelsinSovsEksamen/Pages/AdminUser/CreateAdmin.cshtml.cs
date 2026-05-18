@@ -4,36 +4,45 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 
-namespace AppelsinSovsEksamen.Pages.User
+namespace AppelsinSovsEksamen.Pages.AdminUser
 {
-    public class CreateUserModel : PageModel
+    public class CreateAdminModel : PageModel
     {
         private readonly IRepository<Domain.Models.User> _userRepository;
 
-        public CreateUserModel(IRepository<Domain.Models.User> userRepository)
+        public CreateAdminModel(IRepository<Domain.Models.User> userRepository)
         {
             _userRepository = userRepository;
         }
 
         // Binding af formular-input
         [BindProperty]
-        [Required(ErrorMessage = "Brugernavn er p√•kr√¶vet")]
-        [MinLength(3, ErrorMessage = "Brugernavn skal v√¶re mindst 3 tegn")]
+        [Required(ErrorMessage = "Brugernavn er pÂkrÊvet")]
+        [MinLength(3, ErrorMessage = "Brugernavn skal vÊre mindst 3 tegn")]
         public string InputName { get; set; } = string.Empty;
 
-        // Adgangskode skal v√¶re mindst 6 tegn for at v√¶re sikker nok
         [BindProperty]
-        [Required(ErrorMessage = "Adgangskode er p√•kr√¶vet")]
-        [MinLength(6, ErrorMessage = "Adgangskode skal v√¶re mindst 6 tegn")]
+        public bool IsAdmin { get; set; } = false;
+
+        // Adgangskode skal vÊre mindst 6 tegn for at vÊre sikker nok
+        [BindProperty]
+        [Required(ErrorMessage = "Adgangskode er pÂkrÊvet")]
+        [MinLength(6, ErrorMessage = "Adgangskode skal vÊre mindst 6 tegn")]
         public string InputPassword { get; set; } = string.Empty;
 
         // Fejlbesked der vises i formularen
         public string ErrorMessage { get; set; } = string.Empty;
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
-            // Siden indl√¶ses - intet skal ske her
+           
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return RedirectToPage("/Index");
+            
+            return Page();
         }
+
+        
 
         public IActionResult OnPost()
         {
@@ -44,16 +53,19 @@ namespace AppelsinSovsEksamen.Pages.User
 
             if (brugernavnTaget)
             {
-                ErrorMessage = "Brugernavnet er allerede taget. V√¶lg et andet.";
+                ErrorMessage = "Brugernavnet er allerede taget. VÊlg et andet.";
                 return Page();
             }
 
             var userService = new UserService(_userRepository);
-            var nyBruger = userService.Create(InputName, InputPassword);
+            var nyBruger = userService.CreateAdmin(InputName, InputPassword, IsAdmin);
 
             HttpContext.Session.SetString("UserId", nyBruger.Id.ToString());
             HttpContext.Session.SetString("UserName", nyBruger.Name);
-            HttpContext.Session.SetString("IsAdmin", "false");
+            HttpContext.Session.SetString("IsAdmin", nyBruger.IsAdmin.ToString().ToLower());
+
+            if (nyBruger.IsAdmin)
+                return RedirectToPage("/AdminUser/AdminIndex");
 
             return RedirectToPage("/Index");
         }

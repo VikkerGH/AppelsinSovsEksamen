@@ -1,5 +1,5 @@
 ﻿@page
-@model AppelsinSovsEksamen.Pages.AdminIndexModel
+@model AppelsinSovsEksamen.Pages.AdminUser.AdminIndexModel
 @{
     ViewData["Title"] = "Admin Panel";
 }
@@ -45,7 +45,7 @@
     </div>
 </div>
 
-<div class="row g-3">
+<div class="row g-3 mb-3">
     <div class="col-md-4">
         <div class="card h-100 border-0 shadow-sm" style="background-color:#2a2a2a; color:#f0f0f0;">
             <div class="card-body d-flex flex-column gap-2">
@@ -93,6 +93,26 @@
                    class="btn mt-auto fw-bold"
                    style="background-color:#ff8c00; color:#1a1a1a;">
                     Gå til anmeldelser →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm" style="background-color:#2a2a2a; color:#f0f0f0;">
+            <div class="card-body d-flex flex-column gap-2">
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:36px; height:36px; background:#e3f2fd;">
+                    <i class="bi bi-person-fill-add" style="color:#1565c0;"></i>
+                </div>
+                <h5 class="fw-bold mb-0" style="color:#ff8c00;">Opret admin bruger</h5>
+                <p class="mb-0" style="color:#aaa; font-size:0.875rem;">Opret en ny bruger med admin rettigheder.</p>
+                <a asp-page="/AdminUser/CreateAdmin"
+                   class="btn mt-auto fw-bold"
+                   style="background-color:#ff8c00; color:#1a1a1a;">
+                    Opret admin →
                 </a>
             </div>
         </div>

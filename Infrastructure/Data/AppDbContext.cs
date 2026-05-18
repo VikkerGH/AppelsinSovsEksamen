@@ -24,16 +24,18 @@ namespace Infrastructure.Data
                 new { Id = Guid.Parse("b2c3d4e5-f6a7-4890-b123-456789abcdef"), Name = "Hvor filan er appelsinen?", Description = "Find den skjulte appelsin så hurtigt som muligt. Ingen hjælp. Ingen hints. Den er der et sted" }
             );
 
-            modelBuilder.Entity<User>().HasData(
-                new
-                {
-                    Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                    Name = "Test Admin",
-                    Email = "admin@test.dk",
-                    Password = "test123",
-                    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                }
-            );
+            var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Domain.Models.User>();
+            var adminUser = new Domain.Models.User();
+            var hashedPassword = hasher.HashPassword(adminUser, "Hej12345");
+
+            modelBuilder.Entity<User>().HasData(new
+            {
+                Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                Name = "admin",
+                Password = hashedPassword,
+                IsAdmin = true,
+                CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
 
             modelBuilder.Entity<HighScore>()
                 .HasOne(h => h.User)

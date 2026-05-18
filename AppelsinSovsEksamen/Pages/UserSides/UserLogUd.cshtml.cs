@@ -8,7 +8,7 @@ namespace AppelsinSovsEksamen.Pages.UserSides
         public IActionResult OnGet()
         {
             HttpContext.Session.Clear();
-            return RedirectToPage("/    Index");
+            return RedirectToPage("/Index");
         }
     }
 }
