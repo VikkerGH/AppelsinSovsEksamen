@@ -1,4 +1,30 @@
 ﻿@page
-@model AppelsinSovsEksamen.Pages.AdminGame.AdminGameCreateModel
+@model AppelsinSovsEksamen.Pages.AdminGame.GameCreateModel
 @{
+    ViewData["Title"] = "Opret spil";
 }
+
+<div class="container mt-4" style="color: #f0f0f0; max-width: 600px;">
+    <h2>Opret nyt spil</h2>
+
+    <form method="post" class="mt-4">
+
+        @if (!ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="alert alert-danger"></div>
+        }
+
+        <div class="mb-3">
+            <label class="form-label">Spilnavn</label>
+            <input asp-for="NewGame.Name" class="form-control" style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;" />
+            <span asp-validation-for="NewGame.Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Beskrivelse</label>
+            <textarea asp-for="NewGame.Description" class="form-control" rows="4" style="background-color: #2a2a2a; color: #f0f0f0; border-color: #ff8c00;"></textarea>
+        </div>
+
+        <button type="submit" class="btn" style="background-color: #ff8c00; color: #1a1a1a; font-weight: bold;">Gem spil</button>
+        <a asp-page="./GameIndex" class="btn btn-secondary ms-2">Annuller</a>
+    </form>
+</div>
